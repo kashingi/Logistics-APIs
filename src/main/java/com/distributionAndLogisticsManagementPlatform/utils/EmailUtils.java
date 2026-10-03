@@ -39,7 +39,7 @@ public class EmailUtils {
             String verificationLink = frontendUrl + "/verify-email?token=" + token;
 
             String emailBody =
-                    "Welcome to Netflix Movies!\n\n"
+                    "Welcome to Logistics and movements!\n\n"
                             + "Thank you for registering. Please verify your email by clicking the link below : \n\n"
                             + verificationLink
                             + "\n\n"

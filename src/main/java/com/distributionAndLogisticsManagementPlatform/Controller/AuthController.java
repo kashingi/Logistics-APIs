@@ -1,24 +1,26 @@
 package com.distributionAndLogisticsManagementPlatform.Controller;
 
 import com.distributionAndLogisticsManagementPlatform.dto.UserDto;
-import com.distributionAndLogisticsManagementPlatform.service.UserService;
+import com.distributionAndLogisticsManagementPlatform.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 //Add your annotations here
 @RestController
-@RequestMapping(path = "/v1/api/users")
+@RequestMapping(path = "/v1/api/auth")
 public class AuthController {
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
-    @PostMapping(path = "/register")
-    public ResponseEntity<String> Register(@RequestBody UserDto userDto) {
-        return userService.registerUser(userDto);
+    @PostMapping(path = "/signup")
+    public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
+        return authService.signup(userDto);
+    }
+
+    @PostMapping(path = "/verify-email")
+    public  ResponseEntity<String> verifyEmail (@RequestParam String token) {
+        return authService.verifyEmail(token);
     }
 }

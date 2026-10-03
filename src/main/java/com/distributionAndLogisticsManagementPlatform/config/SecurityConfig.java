@@ -21,10 +21,9 @@ public class SecurityConfig {
     private JwtFilter jwtFilter;
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/auth/login",
-            "/v1/api/users/register",
-            "/api/auth/validate-email",
-            "/api/auth/verify-email",
+            "/v1/api/auth/signup",
+            "/v1/api/auth/login",
+            "/v1/api/auth/verify-email",
             "/api/auth/resend-verification",
             "/api/auth/forgot-password",
             "/api/auth/reset-password"

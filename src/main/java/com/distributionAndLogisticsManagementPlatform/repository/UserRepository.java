@@ -8,4 +8,6 @@ import java.util.Optional;
 //Add your annotations here
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+
+    User findByVerificationToken(String verificationToken);
 }
