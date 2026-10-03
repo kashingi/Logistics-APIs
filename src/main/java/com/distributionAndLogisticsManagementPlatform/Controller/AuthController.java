@@ -1,9 +1,12 @@
 package com.distributionAndLogisticsManagementPlatform.Controller;
 
+import com.distributionAndLogisticsManagementPlatform.dto.ChangePasswordDto;
+import com.distributionAndLogisticsManagementPlatform.dto.ResetPasswordDto;
 import com.distributionAndLogisticsManagementPlatform.dto.UserDto;
 import com.distributionAndLogisticsManagementPlatform.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 //Add your annotations here
@@ -26,6 +29,23 @@ public class AuthController {
 
     @PostMapping(path = "/resend-verificationToken")
     public ResponseEntity<String> resendVerificationToken (@RequestBody UserDto userDto) {
-        return authService.resendVerificationToken(userDto);
+        return authService.resendVerificationToken(userDto.getEmail());
+    }
+
+    @PostMapping(path = "/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody UserDto userDto) {
+        return authService.forgotPassword(userDto.getEmail());
+    }
+
+    @PostMapping(path = "/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+        return authService.resetPassword(resetPasswordDto.getToken(), resetPasswordDto.getNewPassword());
+    }
+
+    @PostMapping(path = "/change-password")
+    public ResponseEntity<String> changePassword(Authentication authentication, @RequestBody ChangePasswordDto changePasswordDto) {
+        String email = authentication.getName();
+
+        return authService.changePassword(email, changePasswordDto.getCurrentPassword(), changePasswordDto.getNewPassword());
     }
 }

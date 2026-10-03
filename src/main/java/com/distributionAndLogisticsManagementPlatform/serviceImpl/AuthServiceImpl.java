@@ -91,9 +91,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<String> resendVerificationToken(UserDto userDto) {
+    public ResponseEntity<String> resendVerificationToken(String email) {
         try {
-            Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
+            Optional<User> optionalUser = userRepository.findByEmail(email);
 
             if (optionalUser.isEmpty()) {
                 return LogisticUtils.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
@@ -107,9 +107,81 @@ public class AuthServiceImpl implements AuthService {
 
             userRepository.save(user);
 
-            emailUtils.sendVerificationEmail(userDto.getEmail(), verificationToken);
+            emailUtils.sendVerificationEmail(email, verificationToken);
 
             return LogisticUtils.getResponseEntity("Verification token resent successfully, please check your email", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> forgotPassword(String email) {
+        try {
+            Optional<User> optionalUser = userRepository.findByEmail(email);
+            if (optionalUser.isEmpty()) {
+                return LogisticUtils.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
+            }
+            User user = optionalUser.get();
+            String resetToken = UUID.randomUUID().toString();
+
+            user.setPasswordResetToken(resetToken);
+            user.setPasswordResetTokenExpiry(Instant.now().plusSeconds(3600));
+
+            userRepository.save(user);
+            emailUtils.sendPasswordResetEmail(email, resetToken);
+
+            return LogisticUtils.getResponseEntity("Password reset email sent successfully. Please check your email inbox.", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> resetPassword(String token, String newPassword) {
+        try {
+            Optional<User> optionalUser = userRepository.findByPasswordResetToken(token);
+            if (optionalUser.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Invalid or expired reset token", HttpStatus.BAD_REQUEST);
+            }
+
+            User user = optionalUser.get();
+            if (user.getPasswordResetTokenExpiry() == null || user.getPasswordResetTokenExpiry().isBefore(Instant.now())) {
+                return LogisticUtils.getResponseEntity("Reset token has expired", HttpStatus.BAD_REQUEST);
+            }
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setPasswordResetToken(null);
+            user.setPasswordResetTokenExpiry(null);
+
+            userRepository.save(user);
+
+            return LogisticUtils.getResponseEntity("Password reset successfully. You can now log in with your new password", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> changePassword(String email, String currentPassword, String newPassword) {
+        try {
+            Optional <User> optionalUser = userRepository.findByEmail(email);
+            if (optionalUser.isEmpty()) {
+                return LogisticUtils.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
+            }
+            User user = optionalUser.get();
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                return LogisticUtils.getResponseEntity("Current password is incorrect.", HttpStatus.BAD_REQUEST);
+            }
+
+            //Save the new credentials
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return LogisticUtils.getResponseEntity("Password changed successfully.", HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

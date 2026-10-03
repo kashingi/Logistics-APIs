@@ -43,6 +43,12 @@ public class User {
     @Column
     private Instant verificationTokenExpiry;
 
+    @Column
+    private String passwordResetToken;
+
+    @Column
+    private Instant passwordResetTokenExpiry;
+
     @CreationTimestamp
     @Column(nullable = false)
     private Instant createdAt;

@@ -8,5 +8,12 @@ public interface AuthService {
 
     ResponseEntity<String> verifyEmail(String token);
 
-    ResponseEntity<String> resendVerificationToken(UserDto userDto);
+
+    ResponseEntity<String> resendVerificationToken(String email);
+
+    ResponseEntity<String> forgotPassword(String email);
+
+    ResponseEntity<String> resetPassword(String token, String newPassword);
+
+    ResponseEntity<String> changePassword(String email, String currentPassword, String newPassword);
 }
