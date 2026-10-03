@@ -7,4 +7,6 @@ public interface AuthService {
     ResponseEntity<String> signup(UserDto userDto);
 
     ResponseEntity<String> verifyEmail(String token);
+
+    ResponseEntity<String> resendVerificationToken(UserDto userDto);
 }

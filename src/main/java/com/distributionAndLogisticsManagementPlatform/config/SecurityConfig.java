@@ -24,7 +24,7 @@ public class SecurityConfig {
             "/v1/api/auth/signup",
             "/v1/api/auth/login",
             "/v1/api/auth/verify-email",
-            "/api/auth/resend-verification",
+            "/v1/api/auth/resend-verificationToken",
             "/api/auth/forgot-password",
             "/api/auth/reset-password"
     };

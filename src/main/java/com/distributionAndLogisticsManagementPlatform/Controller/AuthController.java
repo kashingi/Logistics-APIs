@@ -23,4 +23,9 @@ public class AuthController {
     public  ResponseEntity<String> verifyEmail (@RequestParam String token) {
         return authService.verifyEmail(token);
     }
+
+    @PostMapping(path = "/resend-verificationToken")
+    public ResponseEntity<String> resendVerificationToken (@RequestBody UserDto userDto) {
+        return authService.resendVerificationToken(userDto);
+    }
 }

@@ -8,16 +8,20 @@ import com.distributionAndLogisticsManagementPlatform.repository.UserRepository;
 import com.distributionAndLogisticsManagementPlatform.service.AuthService;
 import com.distributionAndLogisticsManagementPlatform.utils.EmailUtils;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 //Add your annotations here
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -81,6 +85,32 @@ public class AuthServiceImpl implements AuthService {
 
             return LogisticUtils.getResponseEntity("Email verified successfully! You can now login", HttpStatus.OK);
         }catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> resendVerificationToken(UserDto userDto) {
+        try {
+            Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
+
+            if (optionalUser.isEmpty()) {
+                return LogisticUtils.getResponseEntity("User not found", HttpStatus.NOT_FOUND);
+            }
+
+            User user = optionalUser.get();
+            String verificationToken = UUID.randomUUID().toString();
+
+            user.setVerificationToken(verificationToken);
+            user.setVerificationTokenExpiry(Instant.now().plusSeconds(86400));
+
+            userRepository.save(user);
+
+            emailUtils.sendVerificationEmail(userDto.getEmail(), verificationToken);
+
+            return LogisticUtils.getResponseEntity("Verification token resent successfully, please check your email", HttpStatus.OK);
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
