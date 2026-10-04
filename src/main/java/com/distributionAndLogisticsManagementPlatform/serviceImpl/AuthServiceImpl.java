@@ -75,10 +75,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<String> login(String email, String password) {
         try {
-            log.info("Inside login {}");
-//            User user = userRepository.findByEmail(email)
-//                    .filter(u -> passwordEncoder.matches(password, u.getPassword()))
-//                    .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
             Optional <User> optionalUser = userRepository.findByEmail(email);
             if (optionalUser.isEmpty() || !passwordEncoder.matches(password, optionalUser.get().getPassword())) {
                 return LogisticUtils.getResponseEntity("Invalid email or password.", HttpStatus.UNAUTHORIZED);

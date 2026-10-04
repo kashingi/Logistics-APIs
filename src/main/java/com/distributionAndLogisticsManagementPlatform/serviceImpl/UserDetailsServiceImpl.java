@@ -8,30 +8,31 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 
-//Add your annotations here
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
 
-    private User userDetail;
-
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        userDetail = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+
+        User userDetail = userRepository.findByEmail(username)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found: " + username)
+                );
 
         return new org.springframework.security.core.userdetails.User(
                 userDetail.getEmail(),
                 userDetail.getPassword(),
-                new ArrayList<>()
+                Collections.singletonList(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                "ROLE_" + userDetail.getRole().name()
+                        )
+                )
         );
-    }
-
-    public User getUserDetail() {
-        return userDetail;
     }
 }
