@@ -1,6 +1,7 @@
 package com.distributionAndLogisticsManagementPlatform.Controller;
 
 import com.distributionAndLogisticsManagementPlatform.dto.ChangePasswordDto;
+import com.distributionAndLogisticsManagementPlatform.dto.LoginDto;
 import com.distributionAndLogisticsManagementPlatform.dto.ResetPasswordDto;
 import com.distributionAndLogisticsManagementPlatform.dto.UserDto;
 import com.distributionAndLogisticsManagementPlatform.service.AuthService;
@@ -20,6 +21,11 @@ public class AuthController {
     @PostMapping(path = "/signup")
     public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
         return authService.signup(userDto);
+    }
+
+    @PostMapping(path = "/login")
+    public ResponseEntity<String> login (@RequestBody LoginDto loginDto) {
+        return authService.login(loginDto.getEmail(), loginDto.getPassword());
     }
 
     @PostMapping(path = "/verify-email")

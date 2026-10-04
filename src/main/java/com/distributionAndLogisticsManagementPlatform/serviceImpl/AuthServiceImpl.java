@@ -5,6 +5,7 @@ import com.distributionAndLogisticsManagementPlatform.dto.UserDto;
 import com.distributionAndLogisticsManagementPlatform.entity.User;
 import com.distributionAndLogisticsManagementPlatform.enums.Role;
 import com.distributionAndLogisticsManagementPlatform.repository.UserRepository;
+import com.distributionAndLogisticsManagementPlatform.security.JwtUtil;
 import com.distributionAndLogisticsManagementPlatform.service.AuthService;
 import com.distributionAndLogisticsManagementPlatform.utils.EmailUtils;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,11 @@ public class AuthServiceImpl implements AuthService {
     PasswordEncoder passwordEncoder;
     @Autowired
     EmailUtils emailUtils;
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
+
     @Override
     public ResponseEntity<String> signup(UserDto userDto) {
         try {
@@ -59,6 +65,37 @@ public class AuthServiceImpl implements AuthService {
             emailUtils.sendVerificationEmail(user.getEmail(), verificationToken);
 
             return LogisticUtils.getResponseEntity("User created successfully", HttpStatus.CREATED);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<String> login(String email, String password) {
+        try {
+            log.info("Inside login {}");
+//            User user = userRepository.findByEmail(email)
+//                    .filter(u -> passwordEncoder.matches(password, u.getPassword()))
+//                    .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+            Optional <User> optionalUser = userRepository.findByEmail(email);
+            if (optionalUser.isEmpty() || !passwordEncoder.matches(password, optionalUser.get().getPassword())) {
+                return LogisticUtils.getResponseEntity("Invalid email or password.", HttpStatus.UNAUTHORIZED);
+            }
+            User user = optionalUser.get();
+
+            if (!user.isActive()) {
+                return LogisticUtils.getResponseEntity("Your account has been deactivated. Please contact support for assistance", HttpStatus.BAD_REQUEST);
+            }
+            if (!user.isEmailVerified()) {
+                return LogisticUtils.getResponseEntity("Please verify your email before logging in. Check your inbox for the verification link.", HttpStatus.UNAUTHORIZED);
+            }
+            final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+            //String token = jwtUtil.generateToken(userDetailsService.loadUserByUsername(user.getEmail()), userDetailsService.getUserDetail().getRole());
+
+            return new ResponseEntity<String>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
 
         } catch (Exception ex) {
             ex.printStackTrace();

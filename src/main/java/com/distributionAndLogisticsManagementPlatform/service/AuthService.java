@@ -1,5 +1,6 @@
 package com.distributionAndLogisticsManagementPlatform.service;
 
+import com.distributionAndLogisticsManagementPlatform.dto.LoginDto;
 import com.distributionAndLogisticsManagementPlatform.dto.UserDto;
 import org.springframework.http.ResponseEntity;
 
@@ -16,4 +17,6 @@ public interface AuthService {
     ResponseEntity<String> resetPassword(String token, String newPassword);
 
     ResponseEntity<String> changePassword(String email, String currentPassword, String newPassword);
+
+    ResponseEntity<String> login(String email, String password);
 }
