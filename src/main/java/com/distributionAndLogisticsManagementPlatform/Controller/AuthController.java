@@ -20,6 +20,7 @@ public class AuthController {
 
     @PostMapping(path = "/signup")
     public ResponseEntity<String> signup(@RequestBody UserDto userDto) {
+
         return authService.signup(userDto);
     }
 
