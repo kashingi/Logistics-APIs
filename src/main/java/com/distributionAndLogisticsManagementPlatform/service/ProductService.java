@@ -9,4 +9,6 @@ public interface ProductService {
     ResponseEntity<?> getAllProducts();
 
     ResponseEntity<?> getProductById(Long id);
+
+    ResponseEntity<String> updateProduct(Long id, ProductDto productDto);
 }

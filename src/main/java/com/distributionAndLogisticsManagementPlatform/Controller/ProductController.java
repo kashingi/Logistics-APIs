@@ -29,10 +29,10 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<String> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
-//        return productService.updateProduct(id, productDto);
-//    }
+    @PutMapping("/updateProduct/{id}")
+    public ResponseEntity<String> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
+        return productService.updateProduct(id, productDto);
+    }
 
 //    @PatchMapping("/{id}/status")
 //    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam String status) {

@@ -112,5 +112,41 @@ public class ProductServiceImpl implements ProductService {
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Override
+    public ResponseEntity<String> updateProduct(Long id, ProductDto productDto) {
+        try {
+            Optional<Product> optionalProduct = productRepository.findById(id);
+            if (optionalProduct.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
+            }
+
+            Product product = optionalProduct.get();
+            product.setName(productDto.getName());
+            product.setSerialNumber(productDto.getSerialNumber());
+            product.setBrand(productDto.getBrand());
+            product.setDescription(productDto.getDescription());
+            product.setUom(productDto.getUom());
+            product.setPackagingUnit(productDto.getPackagingUnit());
+            product.setQuantityPerUnit(productDto.getQuantityPerUnit());
+            product.setPurchasePrice(productDto.getPurchasePrice());
+            product.setWholesalePrice(productDto.getWholesalePrice());
+            product.setRetailPrice(productDto.getRetailPrice());
+            product.setSalesTaxRate(productDto.getSalesTaxRate());
+            product.setPurchaseTaxRate(productDto.getPurchaseTaxRate());
+            product.setBatchManaged(productDto.isBatchManaged());
+            product.setShelfLifeDays(productDto.getShelfLifeDays());
+            product.setEarlyWarningDays(productDto.getEarlyWarningDays());
+            product.setUpdatedAt(Instant.now());
+
+            productRepository.save(product);
+
+            return LogisticUtils.getResponseEntity("Product updated successfully.", HttpStatus.OK);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }
