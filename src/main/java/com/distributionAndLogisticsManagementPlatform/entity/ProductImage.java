@@ -1,5 +1,6 @@
 package com.distributionAndLogisticsManagementPlatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,6 +15,7 @@ public class ProductImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
     private Product product;
 
     @Column(name = "product_image", nullable = false)

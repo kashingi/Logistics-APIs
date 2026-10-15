@@ -4,10 +4,7 @@ import com.distributionAndLogisticsManagementPlatform.dto.ProductDto;
 import com.distributionAndLogisticsManagementPlatform.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 //Add your annotations here
 @RestController
@@ -22,15 +19,15 @@ public class ProductController {
         return productService.createProduct(productDto);
     }
 
-//    @GetMapping
-//    public ResponseEntity<?> getAllProducts() {
-//        return productService.getAllProducts();
-//    }
+    @GetMapping(path = "/getAllProducts")
+    public ResponseEntity<?> getAllProducts() {
+        return productService.getAllProducts();
+    }
 
-//    @GetMapping("/{id}")
-//    public ResponseEntity<?> getProductById(@PathVariable Long id) {
-//        return productService.getProductById(id);
-//    }
+    @GetMapping("/getProductById/{id}")
+    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+        return productService.getProductById(id);
+    }
 
 //    @PutMapping("/{id}")
 //    public ResponseEntity<String> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {

@@ -84,4 +84,33 @@ public class ProductServiceImpl implements ProductService {
         }
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<?> getAllProducts() {
+        try {
+            List<Product> products = productRepository.findAll();
+
+            return new ResponseEntity<>(products, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity<?> getProductById(Long id) {
+        try {
+            Optional<Product> product = productRepository.findById(id);
+            if (product.isPresent()) {
+                return new ResponseEntity<>(product.get(), HttpStatus.OK);
+            } else {
+                return LogisticUtils.getResponseEntity("Product not found.", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
 }
