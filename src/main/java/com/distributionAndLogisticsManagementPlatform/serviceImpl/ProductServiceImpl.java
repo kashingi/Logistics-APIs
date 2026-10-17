@@ -148,5 +148,43 @@ public class ProductServiceImpl implements ProductService {
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Override
+    public ResponseEntity<String> updateStatus(Long id, String status) {
+        try {
+            Optional<Product> productOptional = productRepository.findById(id);
+            if (productOptional.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
+            }
+
+            Product product = productOptional.get();
+            product.setStatus(ProductStatus.valueOf(status));
+            product.setUpdatedAt(Instant.now());
+
+            productRepository.save(product);
+
+            return LogisticUtils.getResponseEntity("Product status updated successfully.", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getProductsByStatus(String status) {
+        try {
+            if (!status.trim().equalsIgnoreCase("ACTIVE") && !status.trim().equalsIgnoreCase("INACTIVE")) {
+                return LogisticUtils.getResponseEntity("Invalid status", HttpStatus.BAD_REQUEST);
+            }
+            ProductStatus productStatus = ProductStatus.valueOf(status.toUpperCase().trim());
+
+            List<Product> products = productRepository.findByStatus(productStatus);
+
+            return new ResponseEntity<>(products, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }

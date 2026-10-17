@@ -26,6 +26,7 @@ public class ProductController {
 
     @GetMapping("/getProductById/{id}")
     public ResponseEntity<?> getProductById(@PathVariable Long id) {
+
         return productService.getProductById(id);
     }
 
@@ -34,20 +35,14 @@ public class ProductController {
         return productService.updateProduct(id, productDto);
     }
 
-//    @PatchMapping("/{id}/status")
-//    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam String status) {
-//        return productService.updateStatus(id, status);
-//    }
+    @PatchMapping("/updateProductStatus/{id}")
+    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestBody ProductDto productDto) {
+        return productService.updateStatus(id, productDto.getStatus());
+    }
 
-    // ========== New Endpoints ==========
 
-//    @GetMapping("/search")
-//    public ResponseEntity<?> searchProducts(@RequestParam String keyword) {
-//        return productService.searchProducts(keyword);
-//    }
-
-//    @GetMapping("/status/{status}")
-//    public ResponseEntity<?> getProductsByStatus(@PathVariable String status) {
-//        return productService.getProductsByStatus(status);
-//    }
+    @GetMapping("/getProductByStatus/{status}")
+    public ResponseEntity<?> getProductsByStatus(@PathVariable String status) {
+        return productService.getProductsByStatus(status);
+    }
 }

@@ -16,6 +16,7 @@ public class ProductDto {
     private String brand;
     private String description;
     private Uom uom;
+    private String status;
     private PackagingUnit packagingUnit;
     private Float quantityPerUnit;
     private Float purchasePrice;
