@@ -28,6 +28,7 @@ public class ProductDto {
     private boolean batchManaged;
     private Integer shelfLifeDays;
     private Integer earlyWarningDays;
+    private Long categoryId;
 
     // For images
     private List<String> imageUrls;

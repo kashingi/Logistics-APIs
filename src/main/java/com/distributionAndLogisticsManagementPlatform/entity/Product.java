@@ -70,6 +70,10 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
