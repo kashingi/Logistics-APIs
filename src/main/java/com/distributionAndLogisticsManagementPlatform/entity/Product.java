@@ -74,6 +74,9 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    private String createdBy;
+    private String updatedBy;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,16 +33,17 @@ public class PurchaseOrder {
 
     private String status;
 
-
     private String invoiceStatus;
 
-    @Enumerated(EnumType.STRING)
     private String receiptStatus;
 
-    private Float totalAmount;
+    private BigDecimal totalAmount;
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseOrderLine> lines = new ArrayList<>();
+
+    private String createdBy;
+    private String updatedBy;
 
     @CreationTimestamp
     private Instant createdAt;

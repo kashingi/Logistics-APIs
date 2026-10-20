@@ -1,12 +1,15 @@
 package com.distributionAndLogisticsManagementPlatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 //Add your annotations here
 @Data
 @Entity
-@Table(name = "purchase_order")
+@Table(name = "purchase_order_lines")
 public class PurchaseOrderLine {
 
     @Id
@@ -15,6 +18,7 @@ public class PurchaseOrderLine {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_order_id", nullable = false)
+    @JsonIgnore
     private PurchaseOrder purchaseOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,12 +29,11 @@ public class PurchaseOrderLine {
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
 
-    private Float quantity;
-    private Float unitPrice;
-    private Float discount;
+    private BigDecimal quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal discount;
 
-    @Enumerated(EnumType.STRING)
-    private String taxRate;
+    private BigDecimal taxRate;
 
-    private Float amount;
+    private BigDecimal amount;
 }

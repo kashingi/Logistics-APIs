@@ -5,9 +5,11 @@ import com.distributionAndLogisticsManagementPlatform.dto.ProductDto;
 import com.distributionAndLogisticsManagementPlatform.entity.Category;
 import com.distributionAndLogisticsManagementPlatform.entity.Product;
 import com.distributionAndLogisticsManagementPlatform.entity.ProductImage;
+import com.distributionAndLogisticsManagementPlatform.entity.User;
 import com.distributionAndLogisticsManagementPlatform.enums.ProductStatus;
 import com.distributionAndLogisticsManagementPlatform.repository.CategoryRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.ProductRepository;
+import com.distributionAndLogisticsManagementPlatform.repository.UserRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.ProductService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
@@ -33,11 +35,18 @@ public class ProductServiceImpl implements ProductService {
     JwtFilter jwtFilter;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Override
     public ResponseEntity<String> createProduct(ProductDto productDto) {
         try {
             if (jwtFilter.isAdmin()) {
 
+                String email = jwtFilter.getCurrentUser();
+                Optional<User> user = userRepository.findByEmail(email);
+                if (user.isEmpty()) {
+                    return LogisticUtils.getResponseEntity("User not found", HttpStatus.BAD_REQUEST);
+                }
                 if (productDto.getSkuCode() == null || productDto.getSkuCode().trim().isEmpty()) {
                     return LogisticUtils.getResponseEntity("SKU Code is required", HttpStatus.BAD_REQUEST);
                 }
@@ -74,6 +83,8 @@ public class ProductServiceImpl implements ProductService {
                 product.setEarlyWarningDays(productDto.getEarlyWarningDays());
                 product.setStatus(ProductStatus.ACTIVE);
                 product.setProductNo("IT" + String.format("%04d", productRepository.count() + 1));
+                product.setCreatedBy(jwtFilter.getCurrentUser());
+                product.setUpdatedBy(jwtFilter.getCurrentUser());
                 product.setCreatedAt(Instant.now());
                 product.setUpdatedAt(Instant.now());
 
@@ -135,6 +146,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseEntity<String> updateProduct(Long id, ProductDto productDto) {
         try {
+
+            String email = jwtFilter.getCurrentUser();
+            Optional<User> user = userRepository.findByEmail(email);
+            if (user.isEmpty()) {
+                return LogisticUtils.getResponseEntity("User not found", HttpStatus.UNAUTHORIZED);
+            }
             Optional<Product> optionalProduct = productRepository.findById(id);
             if (optionalProduct.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
@@ -162,6 +179,7 @@ public class ProductServiceImpl implements ProductService {
             product.setBatchManaged(productDto.isBatchManaged());
             product.setShelfLifeDays(productDto.getShelfLifeDays());
             product.setEarlyWarningDays(productDto.getEarlyWarningDays());
+            product.setUpdatedBy(jwtFilter.getCurrentUser());
             product.setUpdatedAt(Instant.now());
 
             productRepository.save(product);
@@ -177,6 +195,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseEntity<String> updateStatus(Long id, String status) {
         try {
+            String email = jwtFilter.getCurrentUser();
+            Optional<User> user = userRepository.findByEmail(email);
+            if (user.isEmpty()) {
+                return LogisticUtils.getResponseEntity("User not found", HttpStatus.UNAUTHORIZED);
+            }
             Optional<Product> productOptional = productRepository.findById(id);
             if (productOptional.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
@@ -184,6 +207,7 @@ public class ProductServiceImpl implements ProductService {
 
             Product product = productOptional.get();
             product.setStatus(ProductStatus.valueOf(status));
+            product.setUpdatedBy(jwtFilter.getCurrentUser());
             product.setUpdatedAt(Instant.now());
 
             productRepository.save(product);

@@ -24,8 +24,13 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+//    private SecretKey getSigningKey() {
+//        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+//    }
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String extractUsername(String token) {

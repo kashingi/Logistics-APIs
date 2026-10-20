@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 //Add your annotations here
 @RestController
+@CrossOrigin
 @RequestMapping(path = "/v1/api/auth")
 public class AuthController {
 
