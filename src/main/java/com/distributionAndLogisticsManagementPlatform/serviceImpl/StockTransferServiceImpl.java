@@ -11,6 +11,7 @@ import com.distributionAndLogisticsManagementPlatform.repository.ProductReposito
 import com.distributionAndLogisticsManagementPlatform.repository.StockTransferRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.WarehouseRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
+import com.distributionAndLogisticsManagementPlatform.service.StockService;
 import com.distributionAndLogisticsManagementPlatform.service.StockTransferService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ public class StockTransferServiceImpl implements StockTransferService {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private JwtFilter jwtFilter;
+    @Autowired
+    private StockService stockService;
 
     @Override
     @Transactional
@@ -159,13 +162,25 @@ public class StockTransferServiceImpl implements StockTransferService {
                 return LogisticUtils.getResponseEntity("Stock Transfer not found", HttpStatus.NOT_FOUND);
             }
             StockTransfer transfer = stockTransfer.get();
-
             if (!"DRAFT".equals(transfer.getTransferStatus())) {
-                return LogisticUtils.getResponseEntity("Only DRAFT transfers can be approved", HttpStatus.BAD_REQUEST);
+                return LogisticUtils.getResponseEntity("Only draft transfers can be approved", HttpStatus.BAD_REQUEST);
+            }
+
+            // Decrease stock from source warehouse
+            for (StockTransferLine line : transfer.getLines()) {
+                stockService.decreaseStock(
+                        line.getProduct(),
+                        transfer.getSourceWarehouse(),
+                        line.getQuantity(),
+                        line.getBatchNo(),
+                        "TRANSFER_OUT",
+                        "STOCK_TRANSFER",
+                        transfer.getId(),
+                        jwtFilter.getCurrentUser()
+                );
             }
 
             transfer.setTransferStatus("APPROVED");
-            // In real system we would decrease stock from source warehouse here
             transfer.setUpdatedBy(jwtFilter.getCurrentUser());
             transfer.setUpdatedAt(Instant.now());
 
@@ -193,8 +208,20 @@ public class StockTransferServiceImpl implements StockTransferService {
                 return LogisticUtils.getResponseEntity("Only approved or in transit transfers can be received", HttpStatus.BAD_REQUEST);
             }
 
+            // Increase stock in destination warehouse
+            for (StockTransferLine line : transfer.getLines()) {
+                stockService.increaseStock(
+                        line.getProduct(),
+                        transfer.getDestinationWarehouse(),
+                        line.getQuantity(),
+                        line.getBatchNo(),
+                        "TRANSFER_IN",
+                        "STOCK_TRANSFER",
+                        transfer.getId(),
+                        jwtFilter.getCurrentUser()
+                );
+            }
             transfer.setTransferStatus("RECEIVED");
-            // In real system we would increase stock in destination warehouse here
             transfer.setUpdatedBy(jwtFilter.getCurrentUser());
             transfer.setUpdatedAt(Instant.now());
 

@@ -10,6 +10,7 @@ import com.distributionAndLogisticsManagementPlatform.repository.SupplierReposit
 import com.distributionAndLogisticsManagementPlatform.repository.WarehouseRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.StockInService;
+import com.distributionAndLogisticsManagementPlatform.service.StockService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,8 @@ public class StockInServiceImpl implements StockInService {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private JwtFilter jwtFilter;
-
+    @Autowired
+    private StockService stockService;
 
     @Override
     @Transactional
@@ -154,11 +156,22 @@ public class StockInServiceImpl implements StockInService {
                 return LogisticUtils.getResponseEntity("Only pending Stock In can be approved", HttpStatus.BAD_REQUEST);
             }
 
+            // Increase stock for every line
+            for (StockInLine line : stockIn.getLines()) {
+                stockService.increaseStock(
+                        line.getProduct(),
+                        line.getWarehouse(),
+                        line.getQuantity(),
+                        line.getBatchNo(),
+                        "STOCK_IN",
+                        "STOCK_IN",
+                        stockIn.getId(),
+                        jwtFilter.getCurrentUser()
+                );
+            }
             stockIn.setApprovalStatus("APPROVED");
             stockIn.setUpdatedBy(jwtFilter.getCurrentUser());
             stockIn.setUpdatedAt(Instant.now());
-
-            // TODO: Increase actual stock levels + create Batch records here later
 
             stockInRepository.save(stockIn);
 

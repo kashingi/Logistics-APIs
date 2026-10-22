@@ -11,6 +11,7 @@ import com.distributionAndLogisticsManagementPlatform.repository.SupplierReposit
 import com.distributionAndLogisticsManagementPlatform.repository.WarehouseRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.PurchaseReturnService;
+import com.distributionAndLogisticsManagementPlatform.service.StockService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,8 @@ public class PurchaseReturnServiceImpl implements PurchaseReturnService {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private JwtFilter jwtFilter;
+    @Autowired
+    private StockService stockService;
 
     @Override
     public ResponseEntity<String> createPurchaseReturn(PurchaseReturnDto purchaseReturnDto) {
@@ -152,23 +155,34 @@ public class PurchaseReturnServiceImpl implements PurchaseReturnService {
             if (!jwtFilter.isAdmin()) {
                 return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
-
             Optional<PurchaseReturn> optionalPurchaseReturn = purchaseReturnRepository.findById(id);
             if (optionalPurchaseReturn.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Purchase Return not found", HttpStatus.NOT_FOUND);
             }
 
             PurchaseReturn purchaseReturn = optionalPurchaseReturn.get();
-
             if (!"PENDING_APPROVAL".equals(purchaseReturn.getStatus())) {
                 return LogisticUtils.getResponseEntity("Only pending approval returns can be approved", HttpStatus.BAD_REQUEST);
+            }
+
+            // Decrease stock for every line (goods are being returned to supplier)
+            for (PurchaseReturnLine line : purchaseReturn.getLines()) {
+                stockService.decreaseStock(
+                        line.getProduct(),
+                        line.getWarehouse(),
+                        line.getQuantity(),
+                        null,                          // batchNo - you can add it later if needed
+                        "PURCHASE_RETURN",
+                        "PURCHASE_RETURN",
+                        purchaseReturn.getId(),
+                        jwtFilter.getCurrentUser()
+                );
             }
 
             purchaseReturn.setStatus("APPROVED");
             purchaseReturn.setUpdatedBy(jwtFilter.getCurrentUser());
             purchaseReturn.setUpdatedAt(Instant.now());
 
-            // TODO: Later decrease stock when approved
             purchaseReturnRepository.save(purchaseReturn);
 
             return LogisticUtils.getResponseEntity("Purchase Return approved successfully", HttpStatus.OK);

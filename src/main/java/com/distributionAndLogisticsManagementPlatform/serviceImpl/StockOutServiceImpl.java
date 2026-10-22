@@ -12,6 +12,7 @@ import com.distributionAndLogisticsManagementPlatform.repository.StockOutReposit
 import com.distributionAndLogisticsManagementPlatform.repository.WarehouseRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.StockOutService;
+import com.distributionAndLogisticsManagementPlatform.service.StockService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,8 @@ public class StockOutServiceImpl implements StockOutService {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private JwtFilter jwtFilter;
-
+    @Autowired
+    private StockService stockService;
 
     @Override
     public ResponseEntity<String> createStockOut(StockOutDto stockOutDto) {
@@ -150,14 +152,26 @@ public class StockOutServiceImpl implements StockOutService {
 
             StockOut stockOut = optional.get();
             if (!"PENDING".equals(stockOut.getApprovalStatus())) {
-                return LogisticUtils.getResponseEntity("Only PENDING Stock Out can be approved", HttpStatus.BAD_REQUEST);
+                return LogisticUtils.getResponseEntity("Only pending stock out can be approved", HttpStatus.BAD_REQUEST);
+            }
+
+            // Decrease stock for every line
+            for (StockOutLine line : stockOut.getLines()) {
+                stockService.decreaseStock(
+                        line.getProduct(),
+                        line.getWarehouse(),
+                        line.getQuantity(),
+                        line.getBatchNo(),
+                        "STOCK_OUT",
+                        "STOCK_OUT",
+                        stockOut.getId(),
+                        jwtFilter.getCurrentUser()
+                );
             }
 
             stockOut.setApprovalStatus("APPROVED");
             stockOut.setUpdatedBy(jwtFilter.getCurrentUser());
             stockOut.setUpdatedAt(Instant.now());
-
-            // TODO: Decrease actual stock levels here later
 
             stockOutRepository.save(stockOut);
 

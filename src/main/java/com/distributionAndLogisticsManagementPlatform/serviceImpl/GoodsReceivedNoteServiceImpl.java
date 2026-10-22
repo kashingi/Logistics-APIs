@@ -7,6 +7,7 @@ import com.distributionAndLogisticsManagementPlatform.entity.*;
 import com.distributionAndLogisticsManagementPlatform.repository.*;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.GoodsReceivedNoteService;
+import com.distributionAndLogisticsManagementPlatform.service.StockService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ public class GoodsReceivedNoteServiceImpl implements GoodsReceivedNoteService {
     private WarehouseRepository warehouseRepository;
     @Autowired
     private JwtFilter jwtFilter;
+    @Autowired
+    private StockService stockService;
 
     @Override
     public ResponseEntity<String> createGrn(GoodsReceivedNoteDto goodsReceivedNoteDto) {
@@ -155,23 +158,32 @@ public class GoodsReceivedNoteServiceImpl implements GoodsReceivedNoteService {
             if (!jwtFilter.isAdmin()) {
                 return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
             }
-
             Optional<GoodsReceivedNote> optional = grnRepository.findById(id);
             if (optional.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Goods received note not found", HttpStatus.NOT_FOUND);
             }
-
             GoodsReceivedNote grn = optional.get();
             if (!"PENDING_APPROVAL".equals(grn.getStatus())) {
                 return LogisticUtils.getResponseEntity("Only pending approval GRNs can be approved", HttpStatus.BAD_REQUEST);
             }
 
+            // Increase stock for every line
+            for (GoodsReceivedNoteLine line : grn.getLines()) {
+                stockService.increaseStock(
+                        line.getProduct(),
+                        line.getWarehouse(),
+                        line.getQuantity(),
+                        line.getBatchNo(),
+                        "GRN",
+                        "GOODS_RECEIVED_NOTE",
+                        grn.getId(),
+                        jwtFilter.getCurrentUser()
+                );
+            }
+
             grn.setStatus("APPROVED");
             grn.setUpdatedBy(jwtFilter.getCurrentUser());
             grn.setUpdatedAt(Instant.now());
-
-            // TODO: Later we will increase StockLevel + create Batch here
-            // For now we just approve
 
             // Update linked Purchase Order receipt status if exists
             if (grn.getPurchaseOrder() != null) {
