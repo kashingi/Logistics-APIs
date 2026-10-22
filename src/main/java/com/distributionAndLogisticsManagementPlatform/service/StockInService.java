@@ -16,4 +16,6 @@ public interface StockInService {
     ResponseEntity<String> approveStockIn(Long id);
 
     ResponseEntity<String> rejectStockIn(Long id);
+
+    ResponseEntity<?> getStockInsByStatus(String approvalStatus);
 }

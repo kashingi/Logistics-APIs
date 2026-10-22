@@ -30,6 +30,11 @@ public class GoodsReceivedNoteController {
         return grnService.getGrnById(id);
     }
 
+    @GetMapping("/getByStatus/{status}")
+    public ResponseEntity<?> getByStatus(@PathVariable String status) {
+        return grnService.getGrnsByStatus(status);
+    }
+
     @PatchMapping("/approve/{id}")
     public ResponseEntity<String> approveGrn(@PathVariable Long id) {
         return grnService.approveGrn(id);

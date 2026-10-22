@@ -193,4 +193,19 @@ public class StockInServiceImpl implements StockInService {
         }
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<?> getStockInsByStatus(String approvalStatus) {
+        try {
+            if (!approvalStatus.trim().equalsIgnoreCase("PENDING") && !approvalStatus.trim().equalsIgnoreCase("APPROVED") && !approvalStatus.trim().equalsIgnoreCase("REJECTED") ) {
+                return LogisticUtils.getResponseEntity("Invalid goods received note status", HttpStatus.BAD_REQUEST);
+            }
+            List<StockIn> stockIns = stockInRepository.findByApprovalStatus(approvalStatus.toUpperCase());
+
+            return LogisticUtils.getResponseEntity("Stock in retrieved successfully", stockIns, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

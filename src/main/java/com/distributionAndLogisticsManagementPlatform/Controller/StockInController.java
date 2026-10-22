@@ -30,6 +30,11 @@ public class StockInController {
         return stockInService.getStockInById(id);
     }
 
+    @GetMapping("/getByStatus/{approvalStatus}")
+    public ResponseEntity<?> getByStatus(@PathVariable String approvalStatus) {
+        return stockInService.getStockInsByStatus(approvalStatus);
+    }
+
     @PatchMapping("/approve/{id}")
     public ResponseEntity<String> approve(@PathVariable Long id) {
         return stockInService.approveStockIn(id);

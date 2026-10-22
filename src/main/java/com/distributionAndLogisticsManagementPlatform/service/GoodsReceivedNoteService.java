@@ -12,4 +12,6 @@ public interface GoodsReceivedNoteService {
     ResponseEntity<?> getGrnById(Long id);
 
     ResponseEntity<String> approveGrn(Long id);
+
+    ResponseEntity<?> getGrnsByStatus(String status);
 }

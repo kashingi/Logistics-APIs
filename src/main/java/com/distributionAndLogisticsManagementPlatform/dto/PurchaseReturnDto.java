@@ -12,5 +12,6 @@ public class PurchaseReturnDto {
     private Long supplierId;
     private LocalDate returnDate;
     private String remarks;
+    private String status;
     private List<PurchaseReturnLineDto> lines;
 }

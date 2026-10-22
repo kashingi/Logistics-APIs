@@ -192,4 +192,20 @@ public class GoodsReceivedNoteServiceImpl implements GoodsReceivedNoteService {
         }
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<?> getGrnsByStatus(String status) {
+        try {
+
+            if (!status.trim().equalsIgnoreCase("PENDING_APPROVAL") && !status.trim().equalsIgnoreCase("APPROVED") && !status.trim().equalsIgnoreCase("INVOICED") && !status.trim().equalsIgnoreCase("PAID") && !status.trim().equalsIgnoreCase("PARTIAL_RECEIPT")) {
+                return LogisticUtils.getResponseEntity("Invalid goods received note status", HttpStatus.BAD_REQUEST);
+            }
+            List<GoodsReceivedNote> goodsReceivedNotes = grnRepository.findByStatus(status.toUpperCase());
+
+            return LogisticUtils.getResponseEntity("Goods received notes retrieved successfully", goodsReceivedNotes, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

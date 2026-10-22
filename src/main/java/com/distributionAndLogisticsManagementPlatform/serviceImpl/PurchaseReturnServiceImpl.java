@@ -4,6 +4,7 @@ import com.distributionAndLogisticsManagementPlatform.constants.LogisticConstant
 import com.distributionAndLogisticsManagementPlatform.dto.PurchaseReturnDto;
 import com.distributionAndLogisticsManagementPlatform.dto.PurchaseReturnLineDto;
 import com.distributionAndLogisticsManagementPlatform.entity.*;
+import com.distributionAndLogisticsManagementPlatform.enums.ProductStatus;
 import com.distributionAndLogisticsManagementPlatform.repository.ProductRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.PurchaseReturnRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.SupplierRepository;
@@ -160,7 +161,7 @@ public class PurchaseReturnServiceImpl implements PurchaseReturnService {
             PurchaseReturn purchaseReturn = optionalPurchaseReturn.get();
 
             if (!"PENDING_APPROVAL".equals(purchaseReturn.getStatus())) {
-                return LogisticUtils.getResponseEntity("Only PENDING_APPROVAL returns can be approved", HttpStatus.BAD_REQUEST);
+                return LogisticUtils.getResponseEntity("Only pending approval returns can be approved", HttpStatus.BAD_REQUEST);
             }
 
             purchaseReturn.setStatus("APPROVED");
@@ -196,6 +197,22 @@ public class PurchaseReturnServiceImpl implements PurchaseReturnService {
             purchaseReturnRepository.save(purchaseReturn);
 
             return LogisticUtils.getResponseEntity("Purchase Return rejected", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getPurchaseReturnsByStatus(String status) {
+        try {
+
+            if (!status.trim().equalsIgnoreCase("PENDING_APPROVAL") && !status.trim().equalsIgnoreCase("APPROVED") && !status.trim().equalsIgnoreCase("REJECTED")) {
+                return LogisticUtils.getResponseEntity("Invalid status", HttpStatus.BAD_REQUEST);
+            }
+            List<PurchaseReturn> purchaseReturns = purchaseReturnRepository.findByStatus(status.toUpperCase());
+
+            return LogisticUtils.getResponseEntity("Purchase Returns retrieved successfully", purchaseReturns, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

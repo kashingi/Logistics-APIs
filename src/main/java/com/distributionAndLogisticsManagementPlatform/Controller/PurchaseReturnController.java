@@ -30,6 +30,11 @@ public class PurchaseReturnController {
         return purchaseReturnService.getPurchaseReturnById(id);
     }
 
+    @GetMapping("/getPurchaseReturnsByStatus/{status}")
+    public ResponseEntity<?> getByStatus(@PathVariable String status) {
+        return purchaseReturnService.getPurchaseReturnsByStatus(status);
+    }
+
     @PatchMapping("/approve/{id}")
     public ResponseEntity<String> approve(@PathVariable Long id) {
         return purchaseReturnService.approvePurchaseReturn(id);

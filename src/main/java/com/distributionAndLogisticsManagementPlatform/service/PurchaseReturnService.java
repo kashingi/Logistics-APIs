@@ -14,4 +14,6 @@ public interface PurchaseReturnService {
     ResponseEntity<String> approvePurchaseReturn(Long id);
 
     ResponseEntity<String> rejectPurchaseReturn(Long id);
+
+    ResponseEntity<?> getPurchaseReturnsByStatus(String status);
 }
