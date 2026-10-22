@@ -69,21 +69,32 @@ spring.datasource.password=your_password
 - `POST v1/api/auth/change-password` - Change user password
 
 ### Categories (Requires JWT token)
-- `POST /api/v1//category/addCategory` - add new category
-- `GET /api/v1/category/getAllCategories` - Get all categories
-- `POST /api/v1/category/updateCategory{id}` - Update category
-- `PUT /api/v1/category/updateCategoryStatus/{id}` - Update category status
-- `DELETE /api/category/deleteCategory/{id}` - Delete category
+- `POST /v1/api//category/addCategory` - add new category
+- `GET /v1/api/category/getAllCategories` - Get all categories
+- `GET /v1/api/category/getCategoryById/{id}` - Get category by id
+- `PATCH /v1/api/category/updateCategory{id}` - Update category
+- `PATCH /v1/api/category/updateCategoryStatus/{id}` - Update category status
+- `GET /v1/api/category/getCategoriesByStatus/{id}` - Get category by status
 
-### Expenses (Requires JWT token)
-- `POST /api/v1/product/addProduct` - Add a new product
-- `GET /api/v1/product/getAllProducts` - Add new expense
-- `PUT /api/v1/product/updateProduct/{id}` - Update a product
-- `GET /api/v1/product/getProductByCategory/{id}` - Get a product br category id
-- `PUT /api/v1/product/updateProductStatus` - Update product status
-- `DELETE /api/v1/product/deleteProduct` - Delete a product
+### Products (Requires JWT token)
+- `POST /v1/api/product/addProduct` - Add a new product
+- `GET /v1/api/product/getAllProducts` - Add new expense
+- `GET /v1/api/product/getProductById/{id}` Get product by id
+- `PUT /v1/api/product/updateProduct/{id}` - Update a product
+- `GET /v1/api/product/getProductByCategory/{id}` - Get a product br category id - Missing API
+- `PUT /v1/api/product/updateProductStatus` - Update product status
+- `GET /v1/api/product/getProductByStatus` - Get product by status
 
-## Authentication
+### Purchase Order (Requires JWT token)
+
+- `POST /v1/api/purchase-orders/addPurchaseOrder` - Add purchase order
+- `GET /v1/api/purchase-orders/getAllPurchaseOrders` - Get all purchase orders
+- `GET /v1/api/purchase-orders/getPurchaseOrderById/{id}` Get purchase order by id
+- `PATCH /v1/api/purchase-orders/approve/{id}` - Approve purchase order
+- `PATCH /v1/api/purchase-orders/reject/{id}` - Reject purchase order
+
+
+## Authentication APIs
 
 ### Signup User
 
@@ -143,97 +154,102 @@ POST http://localhost:8084/v1/api/auth/login
 }
 ```
 
-### Get all users
-GET http://localhost:8081/api/v1/auth/getAllUsers
-Authorization: Bearer <jwt_token>
-```json
-[
-  {
-    "id": 2,
-    "name": "User User",
-    "email": "user@test.com",
-    "contact": "0990487504",
-    "role": "User"
-  }
-]
-```
+## Category APIs
 
-### Update user
-PUT http://localhost:8081/api/v1/auth/updateUser/id
-Authorization: Bearer <jwt_token>
-```json
-{
-  "contact" : "0746350811"
-}
-```
-
-### Update user role
-PUT http://localhost:8081/api/v1/auth/updateRole/id
-Authorization: Bearer <jwt_token>
-```json
-{
-  "role" : "admin"
-}
-```
-### Delete user
-DELETE http://localhost:8081/api/v1/auth/deleteUser/id
-Authorization: Bearer <jwt_token>
-```json
-{
-  "Message":"User deleted successfully."
-}
-```
 ### Add category
-POST http://localhost:8081/api/v1/category/addCategory
+POST http://localhost:8084/v1/api/category/addCategory
 Authorization: Bearer <jwt_token>
 ```json
 {
-    "name" : "Legumes",
-    "discount" : 12,
-    "status" : false,
-    "categoryImage" : "base64"
+  "name": "Networking Equipment",
+  "status": "ACTIVE"
 }
+
 ```
 
 ### Get all categories
+POST http://localhost:8084/v1/api/category/getAllCategories
 Authorization: <jwt_token>
 ```json
-[
+{
+  "message": "Categories retrieved successfully.",
+  "payLoad": [
     {
-        "id": 1,
-        "name": "Stools",
-        "discount" : 12,
-        "status": true,
-        "categoryImage" : "base64"
+      "createdAt": "2026-10-18T12:14:59Z",
+      "id": 1,
+      "name": "Electronic Equipment",
+      "status": "INACTIVE",
+      "updatedAt": "2026-10-18T13:10:27Z"
     },
     {
-        "id": 2,
-        "name": "Beds",
-        "discount" : 12,
-        "status": false,
-        "categoryImage" : "base64"
+      "createdAt": "2026-10-18T12:17:38Z",
+      "id": 2,
+      "name": "Electronic Equipment",
+      "status": "INACTIVE",
+      "updatedAt": "2026-10-18T13:27:28Z"
     }
-]
+  ],
+  "status": "SUCCESS"
+}
 ```
 
 ### Update category
 Authorization: <jwt_token>
-PUT http://localhost:8081/api/v1/category/updateCategory/id
+PUT http://localhost:8084/v1/api/category/updateCategory/1
 ```json
 {
-  "name" : "Legumes",
-  "discount" : 12,
-  "status" : true,
-  "categoryImage" : "base64"
+  "name": "Electronic Equipment",
+  "status": "INACTIVE"
 }
 ```
-
-### Update category status
-PUT http://localhost:8081/api/v1/category/updateCategoryStatus/id
+### Get category by id
+POST http://localhost:8084/v1/api/category/getCategoryById/1
 Authorization: <jwt_token>
 ```json
 {
-    "status" : true
+  "message": "Category retrieved successfully.",
+  "payLoad": {
+    "createdAt": "2026-10-18T12:14:59Z",
+    "id": 1,
+    "name": "Electronic Equipment",
+    "status": "INACTIVE",
+    "updatedAt": "2026-10-18T13:10:27Z"
+  },
+  "status": "SUCCESS"
+}
+```
+
+### Get category by status
+POST http://localhost:8084/v1/api/category/getCategoriesByStatus/INACTIVE
+Authorization: <jwt_token>
+```json
+{
+    "message": "Categories retrieved successfully.",
+    "payLoad": [
+        {
+            "createdAt": "2026-10-18T12:14:59Z",
+            "id": 1,
+            "name": "Electronic Equipment",
+            "status": "INACTIVE",
+            "updatedAt": "2026-10-18T13:10:27Z"
+        },
+        {
+            "createdAt": "2026-10-18T12:17:38Z",
+            "id": 2,
+            "name": "Electronic Equipment",
+            "status": "INACTIVE",
+            "updatedAt": "2026-10-18T13:27:28Z"
+        }
+    ],
+    "status": "SUCCESS"
+}
+```
+### Update category status
+PUT http://localhost:8084/v1/api/category/updateCategoryStatus/3
+Authorization: <jwt_token>
+```json
+{
+  "status": "INACTIVE"
 }
 ```
 

@@ -41,7 +41,6 @@ public class ProductController {
         return productService.updateStatus(id, productDto.getStatus());
     }
 
-
     @GetMapping("/getProductByStatus/{status}")
     public ResponseEntity<?> getProductsByStatus(@PathVariable String status) {
         return productService.getProductsByStatus(status);
