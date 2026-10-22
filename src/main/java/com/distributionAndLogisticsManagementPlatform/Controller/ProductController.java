@@ -31,6 +31,11 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
+    @GetMapping("/getProductsByCategory/{categoryId}")
+    public ResponseEntity<?> getProductsByCategory(@PathVariable Long categoryId) {
+        return productService.getProductsByCategory(categoryId);
+    }
+
     @PatchMapping("/updateProduct/{id}")
     public ResponseEntity<String> updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
         return productService.updateProduct(id, productDto);

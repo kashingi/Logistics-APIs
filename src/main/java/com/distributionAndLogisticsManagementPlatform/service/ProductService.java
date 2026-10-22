@@ -16,4 +16,6 @@ public interface ProductService {
     ResponseEntity<String> updateStatus(Long id, String status);
 
     ResponseEntity<?> getProductsByStatus(String status);
+
+    ResponseEntity<?> getProductsByCategory(Long categoryId);
 }

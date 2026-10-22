@@ -236,5 +236,21 @@ public class ProductServiceImpl implements ProductService {
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Override
+    public ResponseEntity<?> getProductsByCategory(Long categoryId) {
+        try {
+            List<Product> products = productRepository.findByCategoryId(categoryId);
+
+            if (products.isEmpty()) {
+                return LogisticUtils.getResponseEntity("No products found for this category", HttpStatus.OK);
+            }
+
+            return LogisticUtils.getResponseEntity("Products retrieved successfully", products, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }
