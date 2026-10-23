@@ -28,13 +28,11 @@ public class SalesQuotationLine {
     private BigDecimal quantity;
     private String uom;
 
-    @Enumerated(EnumType.STRING)
     private String priceTier; //RETAIL or WHOLESALE
 
     private BigDecimal unitPrice;
     private BigDecimal discount = BigDecimal.ZERO;
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
     private String fulfilment; // PICKUP DELIVERY
 }

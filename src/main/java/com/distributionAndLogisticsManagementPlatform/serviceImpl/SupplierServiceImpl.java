@@ -2,6 +2,7 @@ package com.distributionAndLogisticsManagementPlatform.serviceImpl;
 
 import com.distributionAndLogisticsManagementPlatform.constants.LogisticConstants;
 import com.distributionAndLogisticsManagementPlatform.dto.SupplierDto;
+import com.distributionAndLogisticsManagementPlatform.entity.StockIn;
 import com.distributionAndLogisticsManagementPlatform.entity.Supplier;
 import com.distributionAndLogisticsManagementPlatform.repository.SupplierRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
@@ -84,6 +85,21 @@ public class SupplierServiceImpl implements SupplierService {
             }
             return LogisticUtils.getResponseEntity("Supplier retrieved successfully.", supplier, HttpStatus.OK);
 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getSupplierByStatus(String status) {
+        try {
+            if (!status.trim().equalsIgnoreCase("ACTIVE") && !status.trim().equalsIgnoreCase("INACTIVE")) {
+                return LogisticUtils.getResponseEntity("Invalid supplier status", HttpStatus.BAD_REQUEST);
+            }
+            List<Supplier> suppliers = supplierRepository.findByStatus(status);
+
+            return LogisticUtils.getResponseEntity("Suppliers retrieved successfully.", suppliers, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

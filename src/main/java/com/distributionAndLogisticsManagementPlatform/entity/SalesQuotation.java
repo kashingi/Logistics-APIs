@@ -35,7 +35,6 @@ public class SalesQuotation {
     private String salespersonName;
     private String salespersonCode;
 
-    @Enumerated(EnumType.STRING)
     private String status;
 
     private BigDecimal totalAmount;

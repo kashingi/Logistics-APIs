@@ -5,6 +5,7 @@ import com.distributionAndLogisticsManagementPlatform.enums.TaxRate;
 import com.distributionAndLogisticsManagementPlatform.enums.Uom;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 //Add your annotations here
@@ -18,10 +19,10 @@ public class ProductDto {
     private Uom uom;
     private String status;
     private PackagingUnit packagingUnit;
-    private Float quantityPerUnit;
-    private Float purchasePrice;
-    private Float wholesalePrice;
-    private Float retailPrice;
+    private BigDecimal quantityPerUnit;
+    private BigDecimal purchasePrice;
+    private BigDecimal wholesalePrice;
+    private BigDecimal retailPrice;
     private TaxRate salesTaxRate;
     private TaxRate purchaseTaxRate;
     private String skuCode;

@@ -121,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             List<Product> products = productRepository.findAll();
 
-            return new ResponseEntity<>(products, HttpStatus.OK);
+            return LogisticUtils.getResponseEntity("Products retrieved successfully.", products, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -132,11 +132,12 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<?> getProductById(Long id) {
         try {
             Optional<Product> product = productRepository.findById(id);
-            if (product.isPresent()) {
-                return new ResponseEntity<>(product.get(), HttpStatus.OK);
-            } else {
+            if (product.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Product not found.", HttpStatus.NOT_FOUND);
             }
+
+            return LogisticUtils.getResponseEntity("Product retrieved successfully.", product, HttpStatus.OK);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -156,7 +157,6 @@ public class ProductServiceImpl implements ProductService {
             if (optionalProduct.isEmpty()) {
                 return LogisticUtils.getResponseEntity("Product not found", HttpStatus.NOT_FOUND);
             }
-
             Product product = optionalProduct.get();
             if (productDto.getCategoryId() != null) {
                 Category updateCategory = categoryRepository.findById(productDto.getCategoryId()).orElse(null);
@@ -229,7 +229,7 @@ public class ProductServiceImpl implements ProductService {
 
             List<Product> products = productRepository.findByStatus(productStatus);
 
-            return new ResponseEntity<>(products, HttpStatus.OK);
+            return LogisticUtils.getResponseEntity("Product retrieved successfully.", products, HttpStatus.OK);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

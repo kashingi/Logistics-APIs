@@ -28,13 +28,11 @@ public class SalesOrderLine {
     private BigDecimal quantity;
     private String uom;
 
-    @Enumerated(EnumType.STRING)
     private String priceTier;
 
     private BigDecimal unitPrice;
     private BigDecimal discount;
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
     private String fulfilment;
 }

@@ -16,4 +16,6 @@ public interface SupplierService {
     ResponseEntity<String> updateSupplier(Long id, SupplierDto supplierDto);
 
     ResponseEntity<String> updateStatus(Long id, String status);
+
+    ResponseEntity<?> getSupplierByStatus(String status);
 }

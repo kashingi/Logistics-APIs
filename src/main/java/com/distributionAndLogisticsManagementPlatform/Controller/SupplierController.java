@@ -27,7 +27,14 @@ public class SupplierController {
 
     @GetMapping("/getSupplierById/{id}")
     public ResponseEntity<?> getSupplierById(@PathVariable Long id) {
+
         return supplierService.getSupplierById(id);
+    }
+
+    @GetMapping("/getSupplierByStatus/{status}")
+    public ResponseEntity<?> getSupplierByStatus(@PathVariable String status) {
+
+        return supplierService.getSupplierByStatus(status);
     }
 
     @PatchMapping("/updateSupplier/{id}")

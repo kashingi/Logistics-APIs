@@ -25,7 +25,6 @@ public class StockCheck {
 
     private LocalDate date;
 
-    @Enumerated(EnumType.STRING)
     private String taskType;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,7 +34,6 @@ public class StockCheck {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
     private String status;
 
     @OneToMany(mappedBy = "stockCheck", cascade = CascadeType.ALL, orphanRemoval = true)

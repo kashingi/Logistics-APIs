@@ -310,6 +310,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
