@@ -9,6 +9,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +44,11 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private PackagingUnit packagingUnit;
 
-    private Float quantityPerUnit;
+    private BigDecimal quantityPerUnit;
 
-    private Float purchasePrice;
-    private Float wholesalePrice;
-    private Float retailPrice;
+    private BigDecimal purchasePrice;
+    private BigDecimal wholesalePrice;
+    private BigDecimal retailPrice;
 
     @Enumerated(EnumType.STRING)
     private TaxRate salesTaxRate;
