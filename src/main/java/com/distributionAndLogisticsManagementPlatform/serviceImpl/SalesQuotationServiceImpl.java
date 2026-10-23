@@ -176,7 +176,7 @@ public class SalesQuotationServiceImpl implements SalesQuotationService {
     @Override
     public ResponseEntity<?> getSalesQuotationsByStatus(String status) {
         try {
-            //QuotationStatus statusEnum = QuotationStatus.valueOf(status.toUpperCase());
+
             if (!status.trim().equalsIgnoreCase("DRAFT") && !status.trim().equalsIgnoreCase("CREATED") && !status.trim().equalsIgnoreCase("CANCELLED") && !status.trim().equalsIgnoreCase("CONVERTED")) {
                 return LogisticUtils.getResponseEntity("Invalid sales quotation status", HttpStatus.BAD_REQUEST);
             }
