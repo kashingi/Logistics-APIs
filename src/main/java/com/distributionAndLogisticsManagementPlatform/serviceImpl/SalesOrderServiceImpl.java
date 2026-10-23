@@ -4,10 +4,7 @@ import com.distributionAndLogisticsManagementPlatform.constants.LogisticConstant
 import com.distributionAndLogisticsManagementPlatform.dto.SalesOrderDto;
 import com.distributionAndLogisticsManagementPlatform.dto.SalesOrderLineDto;
 import com.distributionAndLogisticsManagementPlatform.entity.*;
-import com.distributionAndLogisticsManagementPlatform.repository.CustomerRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.ProductRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.SalesOrderRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.SalesQuotationRepository;
+import com.distributionAndLogisticsManagementPlatform.repository.*;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.SalesOrderService;
 import com.distributionAndLogisticsManagementPlatform.utils.LogisticUtils;
@@ -37,7 +34,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     @Autowired
     private SalesQuotationRepository salesQuotationRepository;
     @Autowired private JwtFilter jwtFilter;
-
+    @Autowired
+    private CreditNoteRepository creditNoteRepository;
 
     @Override
     @Transactional
@@ -176,7 +174,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             if (!status.trim().equalsIgnoreCase("DRAFT") && !status.trim().equalsIgnoreCase("PENDING") && !status.trim().equalsIgnoreCase("PROCESSING") && !status.trim().equalsIgnoreCase("IN_PROGRESS") && !status.trim().equalsIgnoreCase("COMPLETED") && !status.trim().equalsIgnoreCase("CANCELLED") && !status.trim().equalsIgnoreCase("RETURNED")) {
                 return LogisticUtils.getResponseEntity("Invalid sales order status", HttpStatus.BAD_REQUEST);
             }
-            List<SalesOrder> salesOrderList = salesOrderRepository.findByStatus(status);
+            List<SalesOrder> salesOrderList = salesOrderRepository.findByStatus(status.toUpperCase());
 
             return LogisticUtils.getResponseEntity("Sales Orders retrieved successfully", salesOrderList, HttpStatus.OK);
         } catch (Exception ex) {
@@ -198,8 +196,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             }
 
             SalesOrder order = optional.get();
-            if (!"DRAFT".equals(order.getStatus())) {
-                return LogisticUtils.getResponseEntity("Only DRAFT orders can be confirmed", HttpStatus.BAD_REQUEST);
+            if (!"DRAFT".equalsIgnoreCase(order.getStatus())) {
+                return LogisticUtils.getResponseEntity("Only draft orders can be confirmed", HttpStatus.BAD_REQUEST);
             }
 
             // Later we can reserve stock here
@@ -233,6 +231,120 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             salesOrderRepository.save(order);
 
             return LogisticUtils.getResponseEntity("Sales Order cancelled successfully", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getPendingSalesOrders() {
+        try {
+            List<SalesOrder> pendingOrders = salesOrderRepository.findByStatus("PENDING");
+
+            return LogisticUtils.getResponseEntity("Pending Sales Orders retrieved successfully", pendingOrders, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> moveToDispatch(Long id, String dispatchType) {
+        try {
+            if (!jwtFilter.isAdmin()) {
+                return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+            Optional<SalesOrder> optional = salesOrderRepository.findById(id);
+            if (optional.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Sales Order not found", HttpStatus.NOT_FOUND);
+            }
+            SalesOrder order = optional.get();
+            if (!"PENDING".equalsIgnoreCase(order.getStatus())) {
+                return LogisticUtils.getResponseEntity("Only pending orders can be moved to dispatch", HttpStatus.BAD_REQUEST);
+            }
+
+            String type = dispatchType.toUpperCase().trim();
+            if (!type.equals("STANDARD") && !type.equals("EXPRESS")) {
+                return LogisticUtils.getResponseEntity("Invalid dispatch type. Use STANDARD or EXPRESS", HttpStatus.BAD_REQUEST);
+            }
+
+            order.setDispatchType(type);
+            order.setStatus("PROCESSING");
+            order.setUpdatedBy(jwtFilter.getCurrentUser());
+            order.setUpdatedAt(Instant.now());
+            salesOrderRepository.save(order);
+
+            return LogisticUtils.getResponseEntity("Sales Order moved to " + type + " dispatch successfully", HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> moveToCollection(Long id) {
+        try {
+            if (!jwtFilter.isAdmin()) {
+                return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+            Optional<SalesOrder> salesOrder = salesOrderRepository.findById(id);
+            if (salesOrder.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Sales Order not found", HttpStatus.NOT_FOUND);
+            }
+            SalesOrder order = salesOrder.get();
+            if (!"PENDING".equalsIgnoreCase(order.getStatus())) {
+                return LogisticUtils.getResponseEntity("Only pending orders can be moved to collection", HttpStatus.BAD_REQUEST);
+            }
+
+            order.setDispatchType("COLLECTION");
+            order.setStatus("PROCESSING");
+            order.setUpdatedBy(jwtFilter.getCurrentUser());
+            order.setUpdatedAt(Instant.now());
+            salesOrderRepository.save(order);
+
+            return LogisticUtils.getResponseEntity("Sales Order moved to Customer Collection successfully", HttpStatus.OK);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> cancelWithCreditNote(Long id, String reason) {
+        try {
+            if (!jwtFilter.isAdmin()) {
+                return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+            Optional<SalesOrder> salesOrder = salesOrderRepository.findById(id);
+            if (salesOrder.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Sales Order not found", HttpStatus.NOT_FOUND);
+            }
+            SalesOrder order = salesOrder.get();
+            if ("CANCELLED".equalsIgnoreCase(order.getStatus()) || "COMPLETED".equalsIgnoreCase(order.getStatus())) {
+                return LogisticUtils.getResponseEntity("Cannot cancel this order", HttpStatus.BAD_REQUEST);
+            }
+
+            // Create Credit Note (simple version)
+            CreditNote creditNote = new CreditNote();
+            creditNote.setCreditNoteNo("CN" + String.format("%05d", creditNoteRepository.count() + 1));
+            creditNote.setSalesOrder(order);
+            creditNote.setAmount(order.getTotalAmount());
+            creditNote.setReason(reason != null ? reason : "Order cancelled");
+            creditNote.setStatus("PENDING");
+            creditNote.setCreatedBy(jwtFilter.getCurrentUser());
+            creditNoteRepository.save(creditNote);
+
+            // Update Sales Order
+            order.setStatus("CANCELLED");
+            order.setUpdatedBy(jwtFilter.getCurrentUser());
+            order.setUpdatedAt(Instant.now());
+            salesOrderRepository.save(order);
+
+            return LogisticUtils.getResponseEntity("Sales Order cancelled and Credit Note " + creditNote.getCreditNoteNo() + " created", HttpStatus.OK);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }

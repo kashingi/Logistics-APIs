@@ -44,4 +44,24 @@ public class SalesOrderController {
     public ResponseEntity<String> cancel(@PathVariable Long id) {
         return salesOrderService.cancelSalesOrder(id);
     }
+
+    @GetMapping("/getPendingSalesOrders")
+    public ResponseEntity<?> getPendingSalesOrders() {
+        return salesOrderService.getPendingSalesOrders();
+    }
+
+    @PatchMapping("/{id}/dispatch")
+    public ResponseEntity<String> moveToDispatch(@PathVariable Long id, @RequestParam String dispatchType) {  // STANDARD or EXPRESS
+        return salesOrderService.moveToDispatch(id, dispatchType);
+    }
+
+    @PatchMapping("/{id}/collection")
+    public ResponseEntity<String> moveToCollection(@PathVariable Long id) {
+        return salesOrderService.moveToCollection(id);
+    }
+
+    @PatchMapping("/{id}/cancel-with-credit-note")
+    public ResponseEntity<String> cancelWithCreditNote(@PathVariable Long id, @RequestParam(required = false) String reason) {
+        return salesOrderService.cancelWithCreditNote(id, reason);
+    }
 }
