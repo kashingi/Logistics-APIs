@@ -3,12 +3,10 @@ package com.distributionAndLogisticsManagementPlatform.serviceImpl;
 import com.distributionAndLogisticsManagementPlatform.constants.LogisticConstants;
 import com.distributionAndLogisticsManagementPlatform.dto.SalesQuotationDto;
 import com.distributionAndLogisticsManagementPlatform.dto.SalesQuotationLineDto;
-import com.distributionAndLogisticsManagementPlatform.entity.Customer;
-import com.distributionAndLogisticsManagementPlatform.entity.Product;
-import com.distributionAndLogisticsManagementPlatform.entity.SalesQuotation;
-import com.distributionAndLogisticsManagementPlatform.entity.SalesQuotationLine;
+import com.distributionAndLogisticsManagementPlatform.entity.*;
 import com.distributionAndLogisticsManagementPlatform.repository.CustomerRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.ProductRepository;
+import com.distributionAndLogisticsManagementPlatform.repository.SalesOrderRepository;
 import com.distributionAndLogisticsManagementPlatform.repository.SalesQuotationRepository;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.SalesQuotationService;
@@ -17,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,7 +36,8 @@ public class SalesQuotationServiceImpl implements SalesQuotationService {
     private ProductRepository productRepository;
     @Autowired
     private JwtFilter jwtFilter;
-
+    @Autowired
+    private SalesOrderRepository salesOrderRepository;
 
     @Override
     public ResponseEntity<String> createSalesQuotation(SalesQuotationDto salesQuotationDto) {
@@ -214,12 +214,70 @@ public class SalesQuotationServiceImpl implements SalesQuotationService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> convertToSalesOrder(Long id) {
         try {
-            // We will implement this fully after creating the Sales Order module
-            return LogisticUtils.getResponseEntity(
-                    "Convert to Sales Order will be available after Sales Order module is created",
-                    HttpStatus.NOT_IMPLEMENTED);
+            if (!jwtFilter.isAdmin()) {
+                return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+            Optional<SalesQuotation> quotationOpt = salesQuotationRepository.findById(id);
+            if (quotationOpt.isEmpty()) {
+                return LogisticUtils.getResponseEntity("Sales Quotation not found", HttpStatus.NOT_FOUND);
+            }
+            SalesQuotation quotation = quotationOpt.get();
+
+            if ("CREATED".equals(quotation.getStatus())) {
+                return LogisticUtils.getResponseEntity("Only CREATED quotations can be converted to Sales Order. Current status: " + quotation.getStatus(), HttpStatus.BAD_REQUEST);
+            }
+            // Create new Sales Order from Quotation
+            SalesOrder order = new SalesOrder();
+            order.setSoNumber("SO" + String.format("%05d", salesOrderRepository.count() + 1));
+            order.setDate(LocalDate.now());
+            order.setCustomer(quotation.getCustomer());
+            order.setKraPin(quotation.getKraPin());
+            order.setSalespersonName(quotation.getSalespersonName());
+            order.setSalespersonCode(quotation.getSalespersonCode());
+            order.setSourceQuotation(quotation);
+            order.setOrigin("INTERNAL");
+            order.setStatus("DRAFT");          // or PENDING if you want it confirmed immediately
+            order.setNotes(quotation.getNotes());
+            order.setTerms(quotation.getTerms());
+            order.setBuildingLandmark(quotation.getBuildingLandmark());
+            order.setStreet(quotation.getStreet());
+            order.setHouseNo(quotation.getHouseNo());
+            order.setContactPerson(quotation.getContactPerson());
+            order.setContactPhone(quotation.getContactPhone());
+            order.setCreatedBy(jwtFilter.getCurrentUser());
+            order.setUpdatedBy(jwtFilter.getCurrentUser());
+
+            BigDecimal totalAmount = BigDecimal.ZERO;
+
+            // Copy all lines from Quotation to Sales Order
+            for (SalesQuotationLine qLine : quotation.getLines()) {
+                SalesOrderLine orderLine = new SalesOrderLine();
+                orderLine.setProduct(qLine.getProduct());
+                orderLine.setQuantity(qLine.getQuantity());
+                orderLine.setUom(qLine.getUom());
+                orderLine.setPriceTier(qLine.getPriceTier());
+                orderLine.setUnitPrice(qLine.getUnitPrice());
+                orderLine.setDiscount(qLine.getDiscount());
+                orderLine.setAmount(qLine.getAmount());
+                orderLine.setFulfilment(qLine.getFulfilment());
+
+                totalAmount = totalAmount.add(qLine.getAmount());
+                order.addLine(orderLine);
+            }
+
+            order.setTotalAmount(totalAmount.setScale(2, RoundingMode.HALF_UP));
+            salesOrderRepository.save(order);
+
+            // Update Quotation status
+            quotation.setStatus("CONVERTED");
+            quotation.setUpdatedBy(jwtFilter.getCurrentUser());
+            quotation.setUpdatedAt(Instant.now());
+            salesQuotationRepository.save(quotation);
+
+            return LogisticUtils.getResponseEntity("Sales Quotation successfully converted to Sales Order: " + order.getSoNumber(), HttpStatus.CREATED);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

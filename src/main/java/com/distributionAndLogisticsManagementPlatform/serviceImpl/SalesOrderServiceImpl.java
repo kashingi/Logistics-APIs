@@ -186,6 +186,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> confirmSalesOrder(Long id) {
         try {
             if (!jwtFilter.isAdmin()) {
