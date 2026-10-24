@@ -2439,7 +2439,6 @@ Authorization: <jwt_token>
       "productId": 5,
       "warehouseId": 1,
       "quantity": 150,
-      //"batchNo": "LOT-20261022-VEGONR-WH001",
       "expense": 7500
     }
   ]

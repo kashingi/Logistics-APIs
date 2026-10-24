@@ -9,4 +9,6 @@ import java.util.List;
 public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
 
     List<SalesOrder> findByStatus(String status);
+
+    List<SalesOrder> findByStatusAndDispatchType(String status, String dispatchType);
 }
