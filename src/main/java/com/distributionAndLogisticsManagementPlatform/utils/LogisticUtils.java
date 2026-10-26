@@ -24,6 +24,6 @@ public class LogisticUtils {
     }
     //Have your return message here
     public static ResponseEntity<String> getResponseEntity(String responseMessage, HttpStatus httpStatus) {
-        return new ResponseEntity<>("{\"Message\":\"" + responseMessage + "\"}", httpStatus);
+        return new ResponseEntity<>("{\"message\":\"" + responseMessage + "\"}", httpStatus);
     }
 }

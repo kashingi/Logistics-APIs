@@ -36,7 +36,7 @@ public class EmailUtils {
             message.setTo(toEmail);
             message.setSubject("Logistics - Verify your Email");
 
-            String verificationLink = frontendUrl + "/verify-email?token=" + token;
+            String verificationLink = frontendUrl + "/auth/verify-email?token=" + token;
 
             String emailBody =
                     "Welcome to Logistics and movements!\n\n"
@@ -67,7 +67,7 @@ public class EmailUtils {
             message.setTo(toEmail);
             message.setSubject("Logistics - Reset Password");
 
-            String resetLink = frontendUrl + "/reset-password?token=" + token;
+            String resetLink = frontendUrl + "/auth/reset-password?token=" + token;
 
             String emailBody =
                     "Greetings, \n\n"

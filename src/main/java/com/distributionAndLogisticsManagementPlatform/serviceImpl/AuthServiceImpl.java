@@ -112,6 +112,7 @@ public class AuthServiceImpl implements AuthService {
                 return LogisticUtils.getResponseEntity("Verification token has expired, please request a new one", HttpStatus.BAD_REQUEST);
             }
             user.setEmailVerified(true);
+            user.setActive(true);
             user.setVerificationToken(null);
             user.setVerificationTokenExpiry(null);
 

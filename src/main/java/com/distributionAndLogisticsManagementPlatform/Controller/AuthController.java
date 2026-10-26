@@ -32,6 +32,7 @@ public class AuthController {
 
     @PostMapping(path = "/verify-email")
     public  ResponseEntity<String> verifyEmail (@RequestParam String token) {
+
         return authService.verifyEmail(token);
     }
 
