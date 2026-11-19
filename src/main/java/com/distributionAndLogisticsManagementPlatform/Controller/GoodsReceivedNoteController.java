@@ -32,6 +32,7 @@ public class GoodsReceivedNoteController {
 
     @GetMapping("/getByStatus/{status}")
     public ResponseEntity<?> getByStatus(@PathVariable String status) {
+
         return grnService.getGrnsByStatus(status);
     }
 

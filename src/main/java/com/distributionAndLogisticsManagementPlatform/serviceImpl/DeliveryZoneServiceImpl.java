@@ -108,6 +108,7 @@ public class DeliveryZoneServiceImpl implements DeliveryZoneService {
             DeliveryZone zone = deliveryZone.get();
             zone.setName(deliveryZoneDto.getName());
             zone.setLocations(deliveryZoneDto.getLocations());
+            zone.setStatus(deliveryZoneDto.getStatus());
             zone.setUpdatedBy(jwtFilter.getCurrentUser());
             zone.setUpdatedAt(Instant.now());
 

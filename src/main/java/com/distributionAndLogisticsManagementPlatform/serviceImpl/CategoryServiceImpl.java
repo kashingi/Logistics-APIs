@@ -96,9 +96,6 @@ public class CategoryServiceImpl implements CategoryService {
                 if (optionalCategory.isEmpty()) {
                     return LogisticUtils.getResponseEntity("Category not found", HttpStatus.NOT_FOUND);
                 }
-                if (categoryRepository.existsByName(categoryDto.getName())) {
-                    return LogisticUtils.getResponseEntity("Category name already exists.", HttpStatus.BAD_REQUEST);
-                }
                 Category updateCategory = optionalCategory.get();
                 updateCategory.setName(categoryDto.getName());
                 updateCategory.setStatus(categoryDto.getStatus());

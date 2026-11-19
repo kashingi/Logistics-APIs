@@ -30,7 +30,7 @@ public class DeliveryZoneController {
         return deliveryZoneService.getDeliveryZoneById(id);
     }
 
-    @GetMapping("/status/{status}")
+    @GetMapping("/getDeliveryZonesByStatus/{status}")
     public ResponseEntity<?> getByStatus(@PathVariable String status) {
         return deliveryZoneService.getDeliveryZonesByStatus(status);
     }
@@ -41,8 +41,8 @@ public class DeliveryZoneController {
     }
 
     @PatchMapping("/updateStatus/{id}")
-    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam String status) {
-        return deliveryZoneService.updateStatus(id, status);
+    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestBody DeliveryZoneDto deliveryZoneDto) {
+        return deliveryZoneService.updateStatus(id, deliveryZoneDto.getStatus());
     }
 
     @DeleteMapping("/deleteDeliveryZone/{id}")

@@ -4,10 +4,7 @@ import com.distributionAndLogisticsManagementPlatform.constants.LogisticConstant
 import com.distributionAndLogisticsManagementPlatform.dto.StockCheckCountDto;
 import com.distributionAndLogisticsManagementPlatform.dto.StockCheckDto;
 import com.distributionAndLogisticsManagementPlatform.entity.*;
-import com.distributionAndLogisticsManagementPlatform.repository.ProductRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.StockCheckRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.StockLevelRepository;
-import com.distributionAndLogisticsManagementPlatform.repository.WarehouseRepository;
+import com.distributionAndLogisticsManagementPlatform.repository.*;
 import com.distributionAndLogisticsManagementPlatform.security.JwtFilter;
 import com.distributionAndLogisticsManagementPlatform.service.StockCheckService;
 import com.distributionAndLogisticsManagementPlatform.service.StockService;
@@ -16,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 //Add your annotations here
@@ -36,6 +35,8 @@ public class StockCheckServiceImpl implements StockCheckService {
     @Autowired
     private StockLevelRepository stockLevelRepository;
     @Autowired
+    private BatchRepository batchRepository;
+    @Autowired
     private StockService stockService;
     @Autowired
     private JwtFilter jwtFilter;
@@ -44,7 +45,14 @@ public class StockCheckServiceImpl implements StockCheckService {
     public ResponseEntity<String> createStockCheck(StockCheckDto stockCheckDto) {
         try {
             if (!jwtFilter.isAdmin()) {
-                return LogisticUtils.getResponseEntity(LogisticConstants.UNAUTHORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+                return LogisticUtils.getResponseEntity(
+                        LogisticConstants.UNAUTHORIZED_ACCESS,
+                        HttpStatus.UNAUTHORIZED
+                );
+            }
+
+            if (stockCheckDto.getWarehouseId() == null) {
+                return LogisticUtils.getResponseEntity("Warehouse is required", HttpStatus.BAD_REQUEST);
             }
 
             Optional<Warehouse> warehouseOpt = warehouseRepository.findById(stockCheckDto.getWarehouseId());
@@ -52,13 +60,19 @@ public class StockCheckServiceImpl implements StockCheckService {
                 return LogisticUtils.getResponseEntity("Warehouse not found", HttpStatus.BAD_REQUEST);
             }
 
-            if (stockCheckDto.getProductIds() == null || stockCheckDto.getProductIds().isEmpty()) {
+            if (stockCheckDto.getLines() == null || stockCheckDto.getLines().isEmpty()) {
                 return LogisticUtils.getResponseEntity("At least one product must be selected", HttpStatus.BAD_REQUEST);
+            }
+
+            for (StockCheckCountDto lineDto : stockCheckDto.getLines()) {
+                if (lineDto.getProductId() == null) {
+                    return LogisticUtils.getResponseEntity("Product is required on every line.", HttpStatus.BAD_REQUEST);
+                }
             }
 
             StockCheck stockCheck = new StockCheck();
             stockCheck.setStockCheckNo("SC" + String.format("%05d", stockCheckRepository.count() + 1));
-            stockCheck.setDate(stockCheckDto.getDate() != null ? stockCheckDto.getDate() : LocalDate.now());
+            stockCheck.setCheckDate(stockCheckDto.getCheckDate() != null ? stockCheckDto.getCheckDate() : LocalDate.now());
             stockCheck.setTaskType(stockCheckDto.getTaskType());
             stockCheck.setWarehouse(warehouseOpt.get());
             stockCheck.setDescription(stockCheckDto.getDescription());
@@ -66,43 +80,121 @@ public class StockCheckServiceImpl implements StockCheckService {
             stockCheck.setCreatedBy(jwtFilter.getCurrentUser());
             stockCheck.setUpdatedBy(jwtFilter.getCurrentUser());
 
-            // Create lines with current system quantity
-            for (Long productId : stockCheckDto.getProductIds()) {
-                Optional<Product> productOpt = productRepository.findById(productId);
-                if (productOpt.isEmpty()) continue;
+            Long warehouseId = stockCheckDto.getWarehouseId();
+
+            for (StockCheckCountDto lineDto : stockCheckDto.getLines()) {
+                Optional<Product> productOpt = productRepository.findById(lineDto.getProductId());
+                if (productOpt.isEmpty()) {
+                    return LogisticUtils.getResponseEntity("Product not found: " + lineDto.getProductId(), HttpStatus.BAD_REQUEST);
+                }
 
                 Product product = productOpt.get();
 
-                // Get current stock levels for this product in the warehouse
-                List<StockLevel> levels = stockLevelRepository
-                        .findByProductIdAndWarehouseId(productId, stockCheckDto.getWarehouseId());
+                // Counted qty from request (can be null if user will count later)
+                BigDecimal countedFromRequest = lineDto.getCountedQuantity();
 
-                if (levels.isEmpty()) {
+                // Line notes from request
+                String lineNotes = lineDto.getNotes();
+
+                // Optional explicit batch from request
+                String requestedBatchNo = lineDto.getBatchNo();
+                boolean hasRequestedBatch = requestedBatchNo != null && !requestedBatchNo.isBlank();
+
+                // Current stock levels for this product in warehouse
+                List<StockLevel> levels = stockLevelRepository.findByProductIdAndWarehouseId(product.getId(), warehouseId);
+
+                if (levels == null || levels.isEmpty()) {
                     // No stock exists yet – still create a line with 0
                     StockCheckLine line = new StockCheckLine();
                     line.setProduct(product);
-                    line.setSystemQuantity(BigDecimal.ZERO);
-                    line.setCountedQuantity(null);
-                    line.setVariance(null);
+                    line.setBatch(null);
+                    line.setSystemQuantity(lineDto.getSystemQuantity() != null ? lineDto.getSystemQuantity() : BigDecimal.ZERO);
+                    line.setCountedQuantity(countedFromRequest);
+                    if (countedFromRequest != null) {
+                        line.setVariance(countedFromRequest.subtract(line.getSystemQuantity()));
+                    } else {
+                        line.setVariance(null);
+                    }
+                    line.setNotes(lineNotes);
                     stockCheck.addLine(line);
+
+                } else if (hasRequestedBatch) {
+                    // User selected a specific batch – create one line for that batch
+                    Optional<Batch> batchOpt = batchRepository.findByLotNumber(requestedBatchNo.trim());
+                    Batch batch = batchOpt.orElse(null);
+
+                    BigDecimal systemQty = lineDto.getSystemQuantity();
+                    if (systemQty == null) {
+                        systemQty = levels.stream()
+                                .filter(l -> l.getBatch() != null
+                                        && requestedBatchNo.trim().equalsIgnoreCase(
+                                        l.getBatch().getLotNumber()))
+                                .map(StockLevel::getQuantityOnHand)
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElse(BigDecimal.ZERO);
+                    }
+
+                    StockCheckLine line = new StockCheckLine();
+                    line.setProduct(product);
+                    line.setBatch(batch);
+                    line.setSystemQuantity(systemQty);
+                    line.setCountedQuantity(countedFromRequest);
+                    if (countedFromRequest != null) {
+                        line.setVariance(countedFromRequest.subtract(systemQty));
+                    } else {
+                        line.setVariance(null);
+                    }
+                    line.setNotes(lineNotes);
+                    stockCheck.addLine(line);
+
                 } else {
+                    // No batch specified – expand to all stock levels (batch rows)
+                    // Same behaviour as your original production logic
                     for (StockLevel level : levels) {
                         StockCheckLine line = new StockCheckLine();
                         line.setProduct(product);
                         line.setBatch(level.getBatch());
-                        line.setSystemQuantity(level.getQuantityOnHand());
-                        line.setCountedQuantity(null);
-                        line.setVariance(null);
+                        line.setSystemQuantity(level.getQuantityOnHand() != null ? level.getQuantityOnHand() : BigDecimal.ZERO);
+
+                        // If frontend sent one countedQty for product, apply only when single level;
+                        // for multiple levels leave null so user counts per batch, unless systemQty matched request
+                        if (levels.size() == 1 && countedFromRequest != null) {
+                            line.setCountedQuantity(countedFromRequest);
+                            line.setVariance(countedFromRequest.subtract(line.getSystemQuantity()));
+                        } else if (lineDto.getSystemQuantity() != null && countedFromRequest != null && levels.size() == 1) {
+                            line.setCountedQuantity(countedFromRequest);
+                            line.setVariance(countedFromRequest.subtract(line.getSystemQuantity()));
+                        } else {
+                            // Prefer request counted qty when provided even for multi-level if same product line
+                            // Production choice: apply counted only when single level; else null
+                            line.setCountedQuantity(levels.size() == 1 ? countedFromRequest : null);
+                            if (line.getCountedQuantity() != null) {
+                                line.setVariance(
+                                        line.getCountedQuantity().subtract(line.getSystemQuantity())
+                                );
+                            } else {
+                                line.setVariance(null);
+                            }
+                        }
+
+                        line.setNotes(lineNotes);
                         stockCheck.addLine(line);
                     }
                 }
             }
 
+            if (stockCheck.getLines() == null || stockCheck.getLines().isEmpty()) {
+                return LogisticUtils.getResponseEntity(
+                        "No stock check lines could be created",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
             stockCheckRepository.save(stockCheck);
 
-            return LogisticUtils.getResponseEntity(
-                    "Stock Check created successfully: " + stockCheck.getStockCheckNo(),
-                    HttpStatus.CREATED);
+            return LogisticUtils.getResponseEntity("Stock Check created successfully: " + stockCheck.getStockCheckNo(), HttpStatus.CREATED);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -151,6 +243,7 @@ public class StockCheckServiceImpl implements StockCheckService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> submitCounts(Long id, List<StockCheckCountDto> counts) {
         try {
             if (!jwtFilter.isAdmin()) {
@@ -196,6 +289,7 @@ public class StockCheckServiceImpl implements StockCheckService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> completeStockCheck(Long id) {
         try {
             if (!jwtFilter.isAdmin()) {
@@ -231,6 +325,7 @@ public class StockCheckServiceImpl implements StockCheckService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<String> approveStockCheck(Long id) {
         try {
             if (!jwtFilter.isAdmin()) {

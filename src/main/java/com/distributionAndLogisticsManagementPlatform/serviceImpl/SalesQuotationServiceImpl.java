@@ -226,7 +226,7 @@ public class SalesQuotationServiceImpl implements SalesQuotationService {
             }
             SalesQuotation quotation = quotationOpt.get();
 
-            if ("CREATED".equals(quotation.getStatus())) {
+            if (!"CREATED".equals(quotation.getStatus())) {
                 return LogisticUtils.getResponseEntity("Only CREATED quotations can be converted to Sales Order. Current status: " + quotation.getStatus(), HttpStatus.BAD_REQUEST);
             }
             // Create new Sales Order from Quotation

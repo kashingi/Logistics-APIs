@@ -25,32 +25,36 @@ public class StockCheckController {
 
     @GetMapping("/getAllStockChecks")
     public ResponseEntity<?> getAll() {
+
         return stockCheckService.getAllStockChecks();
     }
 
     @GetMapping("/getStockCheckById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
+
         return stockCheckService.getStockCheckById(id);
     }
 
-    @GetMapping("/status/{status}")
+    @GetMapping("/getStockChecksByStatus/{status}")
     public ResponseEntity<?> getByStatus(@PathVariable String status) {
         return stockCheckService.getStockChecksByStatus(status);
     }
 
-    @PostMapping("/{id}/submit-counts")
+    @PostMapping("/submit-counts/{id}")
     public ResponseEntity<String> submitCounts(@PathVariable Long id,
                                                @RequestBody List<StockCheckCountDto> counts) {
         return stockCheckService.submitCounts(id, counts);
     }
 
-    @PatchMapping("/{id}/complete")
+    @PatchMapping("/completeStockCheck/{id}")
     public ResponseEntity<String> complete(@PathVariable Long id) {
+
         return stockCheckService.completeStockCheck(id);
     }
 
-    @PatchMapping("/{id}/approve")
+    @PatchMapping("/approveStockCheck/{id}")
     public ResponseEntity<String> approve(@PathVariable Long id) {
+
         return stockCheckService.approveStockCheck(id);
     }
 }

@@ -19,49 +19,50 @@ public class DeliveryController {
 
     // ========== Deliveries ==========
 
-    @GetMapping
+    @GetMapping(path = "/getAllDeliveries")
     public ResponseEntity<?> getAllDeliveries(@RequestParam(required = false) String deliveryType, @RequestParam(required = false) String status) {
         return deliveryService.getAllDeliveries(deliveryType, status);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getDeliveryById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         return deliveryService.getDeliveryById(id);
     }
 
-    @GetMapping("/in-progress")
+    @GetMapping("/getDeliveriesInProgress")
     public ResponseEntity<?> getInProgress() {
+
         return deliveryService.getDeliveriesInProgress();
     }
 
-    @PatchMapping("/{id}/mark-picked")
+    @PatchMapping("/mark-picked/{deliveryId}")
     public ResponseEntity<String> markAsPicked(@PathVariable Long deliveryId) {
         return deliveryService.markAsPicked(deliveryId);
     }
 
-    @PatchMapping("/{id}/mark-collected")
+    @PatchMapping("/mark-collected/{deliveryId}")
     public ResponseEntity<String> markAsCollected(@PathVariable Long deliveryId) {
         return deliveryService.markAsCollected(deliveryId);
     }
 
-    @PatchMapping("/{id}/complete")
+    @PatchMapping("/completeDelivery/{deliveryId}")
     public ResponseEntity<String> complete(@PathVariable Long deliveryId) {
         return deliveryService.completeDelivery(deliveryId);
     }
 
-    @PatchMapping("/{id}/cancel")
+    @PatchMapping("/cancelDelivery/{deliveryId}")
     public ResponseEntity<String> cancel(@PathVariable Long deliveryId, @RequestParam String reason, @RequestParam String action) {   // CHARGE_CUSTOMER or RETURN_TO_PENDING
         return deliveryService.cancelDelivery(deliveryId, reason, action);
     }
 
-    @PatchMapping("/{id}/return")
+    @PatchMapping("/returnDelivery/{deliveryId}")
     public ResponseEntity<String> returnDelivery(@PathVariable Long deliveryId, @RequestParam String reason, @RequestParam String action) {   // REPLACE_DELIVERY or ISSUE_CREDIT_NOTE
         return deliveryService.returnDelivery(deliveryId, reason, action);
     }
 
     // ========== Picking Lists ==========
 
-    @PostMapping("/picking-lists")
+    @PostMapping("/createPickingList")
     public ResponseEntity<String> createPickingList(@RequestBody Map<String, Object> body) {
         String deliveryType = (String) body.get("deliveryType");
         Long riderId = body.get("riderId") != null ? Long.valueOf(body.get("riderId").toString()) : null;
@@ -72,7 +73,7 @@ public class DeliveryController {
         return deliveryService.createPickingList(deliveryType, riderId, zoneId, salesOrderIds);
     }
 
-    @GetMapping("/picking-lists")
+    @GetMapping("/getPickingLists")
     public ResponseEntity<?> getPickingLists(@RequestParam(required = false) String deliveryType) {
         return deliveryService.getPickingLists(deliveryType);
     }

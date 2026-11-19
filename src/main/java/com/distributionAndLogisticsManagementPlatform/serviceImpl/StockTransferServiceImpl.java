@@ -246,7 +246,7 @@ public class StockTransferServiceImpl implements StockTransferService {
             }
             StockTransfer transfer = stockTransfer.get();
 
-            if (!"RECEIVED".equals(transfer.getTransferStatus())) {
+            if ("RECEIVED".equals(transfer.getTransferStatus())) {
                 return LogisticUtils.getResponseEntity("Cannot cancel a received transfer", HttpStatus.BAD_REQUEST);
             }
 

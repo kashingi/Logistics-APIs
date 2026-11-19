@@ -151,8 +151,18 @@ public class RiderServiceImpl implements RiderService {
             rider.setVehicleType(riderDto.getVehicleType());
             rider.setCarryingCapacityKg(riderDto.getCarryingCapacityKg());
             rider.setContractDurationMonths(riderDto.getContractDurationMonths());
+            rider.setStatus(riderDto.getStatus());
             rider.setUpdatedBy(jwtFilter.getCurrentUser());
             rider.setUpdatedAt(Instant.now());
+            System.out.println("Rider Status: " + riderDto.getStatus());
+
+            // If suspended, make unavailable
+            if ("INACTIVE".equals(riderDto.getStatus())) {
+                rider.setAvailable(false);
+            }
+            if ("ACTIVE".equals(riderDto.getStatus())) {
+                rider.setAvailable(true);
+            }
 
             if (riderDto.getCurrentZoneId() != null) {
                 Optional<DeliveryZone> zoneOpt = deliveryZoneRepository.findById(riderDto.getCurrentZoneId());
@@ -186,8 +196,9 @@ public class RiderServiceImpl implements RiderService {
             rider.setStatus(newStatus);
 
             // If suspended, make unavailable
-            if (newStatus.equals("INACTIVE")) {
-                rider.setAvailable(false);
+            switch (newStatus) {
+                case "INACTIVE" -> rider.setAvailable(false);
+                case "ACTIVE" -> rider.setAvailable(true);
             }
 
             rider.setUpdatedBy(jwtFilter.getCurrentUser());

@@ -18,7 +18,8 @@ public class ProductImage {
     @JsonIgnore
     private Product product;
 
-    @Column(name = "product_image", nullable = false)
+    @Lob
+    @Column(name = "product_image", nullable = false, columnDefinition = "LONGTEXT")
     private String productImage;
 
     private Integer sortOrder = 0;

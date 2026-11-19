@@ -32,4 +32,5 @@ public class StockCheckLine {
     private BigDecimal systemQuantity;      // expected quantity from system
     private BigDecimal countedQuantity;     // physical count
     private BigDecimal variance;            // counted - system
+    private String notes;
 }

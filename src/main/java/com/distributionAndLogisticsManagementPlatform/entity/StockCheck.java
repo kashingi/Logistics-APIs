@@ -23,7 +23,7 @@ public class StockCheck {
     @Column(nullable = false, unique = true)
     private String stockCheckNo;                // e.g. SC00001
 
-    private LocalDate date;
+    private LocalDate checkDate;
 
     private String taskType;
 

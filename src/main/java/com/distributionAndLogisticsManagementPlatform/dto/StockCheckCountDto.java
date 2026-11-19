@@ -10,5 +10,8 @@ public class StockCheckCountDto {
 
     private Long productId;
     private Long batchId;                   // optional
+    private String batchNo;
+    private BigDecimal systemQuantity;
     private BigDecimal countedQuantity;
+    private String notes;
 }

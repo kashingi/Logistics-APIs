@@ -70,6 +70,8 @@ public class StockServiceImpl implements StockService {
 
     /**
      * Decrease stock (used by Stock Out, Transfer Approve, Sales, etc.)
+     *
+     * @return
      */
     @Override
     public void decreaseStock(Product product, Warehouse warehouse, BigDecimal quantity, String batchNo, String movementType, String referenceType, Long referenceId, String createdBy) {
@@ -217,6 +219,58 @@ public class StockServiceImpl implements StockService {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getAllStockLevels() {
+        try {
+            List<StockLevel> levels = stockLevelRepository.findAll();
+            return LogisticUtils.getResponseEntity("Stock levels retrieved successfully", levels, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getStockByWarehouse(Long warehouseId) {
+        try {
+            List<StockLevel> levels = stockLevelRepository.findByWarehouseId(warehouseId);
+
+            return LogisticUtils.getResponseEntity("Stock levels retrieved successfully", levels, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getStockByProduct(Long productId) {
+        try {
+            List<StockLevel> levels = stockLevelRepository.findByProductId(productId);
+            return LogisticUtils.getResponseEntity("Stock levels retrieved successfully", levels, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<?> getLowStock(BigDecimal threshold) {
+        try {
+            BigDecimal limit = threshold != null ? threshold : BigDecimal.TEN;
+            List<StockLevel> levels = stockLevelRepository.findAll().stream()
+                    .filter(s -> s.getQuantityOnHand() != null && s.getQuantityOnHand().compareTo(limit) < 0).toList();
+
+            return LogisticUtils.getResponseEntity("Low stock items retrieved successfully", levels, HttpStatus.OK);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         return LogisticUtils.getResponseEntity(LogisticConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

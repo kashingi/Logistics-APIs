@@ -22,11 +22,13 @@ public class StockInController {
 
     @GetMapping("/getAllStockIns")
     public ResponseEntity<?> getAll() {
+
         return stockInService.getAllStockIns();
     }
 
     @GetMapping("/getStockInById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
+
         return stockInService.getStockInById(id);
     }
 

@@ -30,7 +30,7 @@ public class SalesQuotationController {
         return salesQuotationService.getSalesQuotationById(id);
     }
 
-    @GetMapping("/status/{status}")
+    @GetMapping("/getSalesQuotationsByStatus/{status}")
     public ResponseEntity<?> getByStatus(@PathVariable String status) {
         return salesQuotationService.getSalesQuotationsByStatus(status);
     }

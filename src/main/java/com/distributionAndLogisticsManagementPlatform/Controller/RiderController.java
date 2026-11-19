@@ -30,23 +30,24 @@ public class RiderController {
         return riderService.getRiderById(id);
     }
 
-    @GetMapping("/status/{status}")
+    @GetMapping("/getByStatus/{status}")
     public ResponseEntity<?> getByStatus(@PathVariable String status) {
+
         return riderService.getRidersByStatus(status);
     }
 
-    @GetMapping("/available")
+    @GetMapping("/getAvailableRiders")
     public ResponseEntity<?> getAvailableRiders(@RequestParam(required = false) Long zoneId) {
         return riderService.getAvailableRiders(zoneId);
     }
 
-    @PutMapping("/updateRider/{id}")
+    @PatchMapping("/updateRider/{id}")
     public ResponseEntity<String> update(@PathVariable Long id, @RequestBody RiderDto riderDto) {
         return riderService.updateRider(id, riderDto);
     }
 
     @PatchMapping("/updateStatus/{id}")
-    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestParam String status) {
-        return riderService.updateStatus(id, status);
+    public ResponseEntity<String> updateStatus(@PathVariable Long id, @RequestBody RiderDto riderDto) {
+        return riderService.updateStatus(id, riderDto.getStatus());
     }
 }

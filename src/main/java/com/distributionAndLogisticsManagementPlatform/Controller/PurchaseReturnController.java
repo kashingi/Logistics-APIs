@@ -22,11 +22,13 @@ public class PurchaseReturnController {
 
     @GetMapping("/getAllPurchaseReturns")
     public ResponseEntity<?> getAll() {
+
         return purchaseReturnService.getAllPurchaseReturns();
     }
 
     @GetMapping("/getPurchaseReturnById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
+
         return purchaseReturnService.getPurchaseReturnById(id);
     }
 

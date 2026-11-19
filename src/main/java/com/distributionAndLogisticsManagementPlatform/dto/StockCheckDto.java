@@ -9,9 +9,11 @@ import java.util.List;
 @Data
 public class StockCheckDto {
 
-    private LocalDate date;
+    private LocalDate checkDate;
     private String taskType;
     private Long warehouseId;
     private String description;
-    private List<Long> productIds;          // products to include in the check
+    private List<StockCheckCountDto> lines;
+    //private List<Long> productIds;          // products to include in the check
+    private String notes;
 }

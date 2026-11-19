@@ -22,11 +22,13 @@ public class StockOutController {
 
     @GetMapping("/getAllStockOuts")
     public ResponseEntity<?> getAll() {
+
         return stockOutService.getAllStockOuts();
     }
 
     @GetMapping("/getStockOutById/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
+
         return stockOutService.getStockOutById(id);
     }
 
@@ -37,11 +39,13 @@ public class StockOutController {
 
     @PatchMapping("/approve/{id}")
     public ResponseEntity<String> approve(@PathVariable Long id) {
+
         return stockOutService.approveStockOut(id);
     }
 
     @PatchMapping("/reject/{id}")
     public ResponseEntity<String> reject(@PathVariable Long id) {
+
         return stockOutService.rejectStockOut(id);
     }
 }

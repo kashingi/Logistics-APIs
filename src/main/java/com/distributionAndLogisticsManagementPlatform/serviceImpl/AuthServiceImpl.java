@@ -88,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
             if (!user.isEmailVerified()) {
                 return LogisticUtils.getResponseEntity("Please verify your email before logging in. Check your inbox for the verification link.", HttpStatus.UNAUTHORIZED);
             }
-            final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+            final String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getFullName());
 
             //String token = jwtUtil.generateToken(userDetailsService.loadUserByUsername(user.getEmail()), userDetailsService.getUserDetail().getRole());
 

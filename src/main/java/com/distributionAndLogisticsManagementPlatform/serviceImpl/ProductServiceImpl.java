@@ -81,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
                 product.setBatchManaged(productDto.isBatchManaged());
                 product.setShelfLifeDays(productDto.getShelfLifeDays());
                 product.setEarlyWarningDays(productDto.getEarlyWarningDays());
-                product.setStatus(ProductStatus.ACTIVE);
+                product.setStatus(ProductStatus.valueOf(productDto.getStatus()));
                 product.setProductNo("IT" + String.format("%04d", productRepository.count() + 1));
                 product.setCreatedBy(jwtFilter.getCurrentUser());
                 product.setUpdatedBy(jwtFilter.getCurrentUser());
@@ -179,6 +179,7 @@ public class ProductServiceImpl implements ProductService {
             product.setBatchManaged(productDto.isBatchManaged());
             product.setShelfLifeDays(productDto.getShelfLifeDays());
             product.setEarlyWarningDays(productDto.getEarlyWarningDays());
+            product.setStatus(ProductStatus.valueOf(productDto.getStatus()));
             product.setUpdatedBy(jwtFilter.getCurrentUser());
             product.setUpdatedAt(Instant.now());
 

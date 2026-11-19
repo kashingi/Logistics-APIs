@@ -3,7 +3,6 @@ package com.distributionAndLogisticsManagementPlatform.service;
 import com.distributionAndLogisticsManagementPlatform.entity.Product;
 import com.distributionAndLogisticsManagementPlatform.entity.Warehouse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
@@ -19,4 +18,13 @@ public interface StockService {
                        Long referenceId, String createdBy);
 
     ResponseEntity<?> getStockAgeingReport(Long warehouseId);
+
+    // ===== NEW: Stock Levels APIs =====
+    ResponseEntity<?> getAllStockLevels();
+
+    ResponseEntity<?> getStockByWarehouse(Long warehouseId);
+
+    ResponseEntity<?> getStockByProduct(Long productId);
+
+    ResponseEntity<?> getLowStock(BigDecimal threshold);
 }
